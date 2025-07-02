@@ -85,15 +85,14 @@
         "pre-commit-hooks": "pre-commit-hooks"
       },
       "locked": {
-        "lastModified": 1751450000,
-        "narHash": "sha256-DX1G9Nw6hfwvDJEFc8QMRq7Oi7PlDYh2f2yEgec/neU=",
-        "path": "/home/gipsy/o/orange/nixos-rk3588",
+        "path": "..",
         "type": "path"
       },
       "original": {
-        "path": "/home/gipsy/o/orange/nixos-rk3588",
+        "path": "..",
         "type": "path"
-      }
+      },
+      "parent": []
     },
     "nixpkgs": {
       "locked": {

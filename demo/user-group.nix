@@ -32,4 +32,8 @@ in {
     "${username}" = {};
     docker = {};
   };
+
+  security.sudo.extraConfig = ''
+    ${username} ALL=(ALL) NOPASSWD: ALL
+  '';
 }

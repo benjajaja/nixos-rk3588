@@ -1,5 +1,5 @@
 {
-  config,
+  # config,
   pkgs,
   nixpkgs,
   ...
@@ -59,14 +59,14 @@
     gnused
     gawk
     tmux
-    docker-compose
+    stress-ng
   ];
 
   # replace default editor with neovim
   environment.variables.EDITOR = "nvim";
 
   virtualisation.docker = {
-    enable = true;
+    enable = false;
     # start dockerd on boot.
     # This is required for containers which are created with the `--restart=always` flag to work.
     enableOnBoot = true;

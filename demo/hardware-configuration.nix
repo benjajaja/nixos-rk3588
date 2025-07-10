@@ -14,7 +14,11 @@
 
   boot.initrd.availableKernelModules = ["nvme"];
   boot.initrd.kernelModules = [];
-  boot.kernelModules = [];
+  boot.kernelModules = ["nfsd"];
+  fileSystems."/proc/fs/nfsd" = {
+    fsType = "nfsd";
+    device = "nfsd";
+  };
   boot.extraModulePackages = [];
 
   fileSystems."/" = {
@@ -26,6 +30,12 @@
     device = "/dev/disk/by-uuid/12CE-A600";
     fsType = "vfat";
     options = ["fmask=0022" "dmask=0022"];
+  };
+
+  fileSystems."/srv/backup" = {
+    device = "/dev/disk/by-uuid/722C54791642E0EB";
+    fsType = "ntfs";
+    options = ["nofail"];
   };
 
   swapDevices = [];

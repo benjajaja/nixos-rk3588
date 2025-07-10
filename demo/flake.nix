@@ -73,7 +73,7 @@
         deployment.targetHost =
           if compilationType != "local-native"
           # TODO: you will want to change this IP to another address or host name
-          then "192.168.8.225"
+          then "ops"
           else null;
         deployment.targetUser =
           if compilationType != "local-native"

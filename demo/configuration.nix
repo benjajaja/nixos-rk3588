@@ -1,5 +1,6 @@
 {
   # config,
+  lib,
   pkgs,
   nixpkgs,
   ...
@@ -7,6 +8,7 @@
   # =========================================================================
   #      Base NixOS Configuration
   # =========================================================================
+  # nix run nixpkgs#colmena apply -- --impure
 
   # Set your time zone.
   time.timeZone = "Atlantic/Canary";
@@ -60,6 +62,11 @@
     gawk
     tmux
     stress-ng
+    lm_sensors
+
+    # servers
+    nfs-utils
+    ntfs3g
 
     # stop annoying $TERM complaints
     kitty.terminfo
@@ -68,11 +75,13 @@
   # replace default editor with neovim
   environment.variables.EDITOR = "nvim";
 
+  networking.firewall.enable = true;
+
   virtualisation.docker = {
     enable = false;
     # start dockerd on boot.
     # This is required for containers which are created with the `--restart=always` flag to work.
-    enableOnBoot = true;
+    enableOnBoot = false;
   };
 
   services.openssh = {
@@ -83,6 +92,161 @@
       PasswordAuthentication = false; # disable password login
     };
     openFirewall = true;
+  };
+
+  systemd.tmpfiles.rules = builtins.concatLists [
+    # Type | Path | Mode | User | Group | Age | Argument
+    [
+      "d /srv/nfs 0777 root root - -"
+      "d /srv/backup 0777 root root - -"
+      "d /srv/media 0777 root root - -"
+      "d /srv/media/torrents 0777 root root - -"
+      "d /srv/photos 0777 immich immich - -"
+      "d /srv/photos/encoded-video 0777 immich immich - -"
+      "f /srv/photos/encoded-video/.immich 0777 immich immich - -"
+      "d /srv/photos/library 0777 immich immich - -"
+      "f /srv/photos/library/.immich 0777 immich immich - -"
+      "d /srv/photos/upload 0777 immich immich - -"
+      "f /srv/photos/upload/.immich 0777 immich immich - -"
+      "d /srv/photos/profile 0777 immich immich - -"
+      "f /srv/photos/profile/.immich 0777 immich immich - -"
+      "d /srv/photos/thumbs 0777 immich immich - -"
+      "f /srv/photos/thumbs/.immich 0777 immich immich - -"
+      "d /srv/photos/backups 0777 immich immich - -"
+      "f /srv/photos/backups/.immich 0777 immich immich - -"
+    ]
+  ];
+  fileSystems = builtins.listToAttrs (builtins.map (name: {
+    name = "/srv/nfs/${name}";
+    value = {
+      device = "/srv/${name}";
+      fsType = "none";
+      options = ["bind"];
+    };
+  }) ["backup" "media" "photos"]);
+
+  services.rpcbind.enable = true;
+  services.nfs.server = {
+    enable = true;
+    mountdPort = 892;
+    statdPort = 4000;
+    exports = ''
+      /srv/nfs         192.168.8.0/24(rw,fsid=0,no_subtree_check,no_root_squash)
+      /srv/nfs/media   192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash)
+      /srv/nfs/backup  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash)
+      /srv/nfs/photos  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash)
+    '';
+  };
+  networking.firewall.allowedTCPPorts = [
+    111 # nfsd...
+    2049
+    892
+    4000
+    80 # http / caddy
+    443
+  ];
+
+  # Patch the units because they are not generated, yet no build error, probably due to nfsd and friends coming from the armbian kernel.
+  systemd.services."nfs-mountd" = {
+    description = "NFS Mount Daemon HACK!";
+    requires = ["proc-fs-nfsd.mount"];
+    wants = ["network-online.target"];
+    after = [
+      "proc-fs-nfsd.mount"
+      "network-online.target"
+      "local-fs.target"
+      "rpcbind.socket"
+    ];
+    bindsTo = ["nfs-server.service"];
+    serviceConfig = {
+      Type = "forking";
+      ExecStart = "${pkgs.nfs-utils}/bin/rpc.mountd";
+
+      Environment = [
+        "LOCALE_ARCHIVE=${pkgs.glibcLocales}/lib/locale/locale-archive"
+        "PATH=${pkgs.coreutils}/bin:${pkgs.findutils}/bin:${pkgs.gnugrep}/bin"
+        "TZDIR=${pkgs.tzdata}/share/zoneinfo"
+      ];
+    };
+    wantedBy = ["multi-user.target"];
+  };
+  systemd.services.nfs-server = {
+    description = "NFS server and services HACK! for armbian kernel with nixos";
+    wantedBy = ["multi-user.target"];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStartPre = "${pkgs.nfs-utils}/bin/exportfs -r";
+      ExecStart = "${pkgs.nfs-utils}/bin/rpc.nfsd";
+      ExecStop = "${pkgs.nfs-utils}/bin/rpc.nfsd 0";
+      ExecStopPost = "\"${pkgs.nfs-utils}/bin/exportfs -au && ${pkgs.nfs-utils}/bin/exportfs -f\"";
+    };
+    requires = ["nfs-mountd.service" "rpcbind.socket"];
+    after = ["network-online.target" "proc-fs-nfsd.mount" "nfs-mountd.service" "rpcbind.socket"];
+  };
+
+  systemd.services.led-control = {
+    description = "Orange Pi 5 LED gimmick";
+    wantedBy = ["multi-user.target"];
+    after = ["multi-user.target"];
+
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.bash}/bin/bash ${pkgs.writeShellScript "disable-blue-enable-green-led" ''
+        echo none > /sys/class/leds/blue_led/trigger
+        echo 0 > /sys/class/leds/blue_led/brightness
+
+        echo default-on > /sys/class/leds/green_led/trigger
+      ''}";
+      RemainAfterExit = true;
+    };
+  };
+
+  services.immich = {
+    enable = true;
+    host = "0.0.0.0";
+    port = 2283;
+    accelerationDevices = null;
+    mediaLocation = "/srv/photos";
+    openFirewall = true;
+  };
+  # users.users.immich.extraGroups = [ "video" "render" "users" ];
+
+  services.transmission = {
+    enable = true;
+    openRPCPort = true;
+    openPeerPorts = true;
+    settings = {
+      "download-dir" = "/srv/media/torrents";
+      "rpc-bind-address" = "0.0.0.0";
+      "rpc-authentication-required" = false;
+      "rpc-host-whitelist-enabled" = false;
+      "rpc-whitelist-enabled" = false;
+    };
+  };
+
+  services.jackett = {
+    enable = true;
+    openFirewall = true;
+  };
+  services.flaresolverr = {
+    enable = false;
+    openFirewall = true;
+  };
+
+  services.caddy = {
+    enable = true;
+    virtualHosts."photos.qdice.wtf" = {
+      extraConfig = ''
+        reverse_proxy localhost:2283
+      '';
+    };
+    virtualHosts."lz.qdice.wtf" = {
+      extraConfig = ''
+        root * /srv/www
+        file_server
+      '';
+    };
   };
 
   programs = {

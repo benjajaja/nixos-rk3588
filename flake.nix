@@ -2,7 +2,8 @@
   description = "A minimal NixOS configuration for the RK3588/RK3588S based SBCs";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
 
     nixos-generators = {
@@ -22,31 +23,29 @@
     };
   };
 
-  outputs =
-    { self
-    , nixpkgs
-    , flake-utils
-    , nixos-generators
-    , pre-commit-hooks
-    , ...
-    }:
-    let
-      # Local system's architecture, the host you are running this flake on.
-      localSystem = "x86_64-linux";
-      pkgsLocal = import nixpkgs { system = localSystem; };
-      # The native system of the target SBC.
-      aarch64System = "aarch64-linux";
-      pkgsNative = import nixpkgs { system = aarch64System; };
+  outputs = {
+    self,
+    nixpkgs,
+    flake-utils,
+    nixos-generators,
+    pre-commit-hooks,
+    ...
+  }: let
+    # Local system's architecture, the host you are running this flake on.
+    localSystem = "x86_64-linux";
+    pkgsLocal = import nixpkgs {system = localSystem;};
+    # The native system of the target SBC.
+    aarch64System = "aarch64-linux";
+    pkgsNative = import nixpkgs {system = aarch64System;};
 
-      # Cross-compilation toolchain for building on the local system.
-      pkgsCross = import nixpkgs {
-        inherit localSystem;
-        crossSystem = aarch64System;
-      };
-    in
+    # Cross-compilation toolchain for building on the local system.
+    pkgsCross = import nixpkgs {
+      inherit localSystem;
+      crossSystem = aarch64System;
+    };
+  in
     {
       nixosModules = {
-
         orangepi5plus = throw "'nixosModules.orangepi5plus' has been renamed to 'nixosModules.boards.orangepi5plus'";
         orangepi5b = throw "'nixosModules.orangepi5b' has been renamed to 'nixosModules.boards.orangepi5b'";
         orangepi5 = throw "'nixosModules.orangepi5' has been renamed to 'nixosModules.boards.orangepi5'";
@@ -75,7 +74,7 @@
           };
         };
 
-        formats = { config, ... }: {
+        formats = {config, ...}: {
           imports = [
             nixos-generators.nixosModules.all-formats
           ];
@@ -111,60 +110,58 @@
         // (nixpkgs.lib.mapAttrs'
           (name: board:
             nixpkgs.lib.nameValuePair
-              (name + "-cross")
-              (nixpkgs.lib.nixosSystem {
-                system = localSystem; # x64
-                specialArgs.rk3588 = {
-                  inherit nixpkgs;
-                  pkgsKernel = pkgsCross;
-                };
-                modules = [
-                  ./modules/configuration.nix
-                  board.core
-                  board.sd-image
+            (name + "-cross")
+            (nixpkgs.lib.nixosSystem {
+              system = localSystem; # x64
+              specialArgs.rk3588 = {
+                inherit nixpkgs;
+                pkgsKernel = pkgsCross;
+              };
+              modules = [
+                ./modules/configuration.nix
+                board.core
+                board.sd-image
 
-                  {
-                    networking.hostName = name;
-                    sdImage.imageBaseName = "${name}-sd-image";
+                {
+                  networking.hostName = name;
+                  sdImage.imageBaseName = "${name}-sd-image";
 
-                    # Use the cross-compilation toolchain to build the whole system.
-                    nixpkgs.crossSystem.config = "aarch64-unknown-linux-gnu";
-                  }
-                ];
-              }))
+                  # Use the cross-compilation toolchain to build the whole system.
+                  nixpkgs.crossSystem.config = "aarch64-unknown-linux-gnu";
+                }
+              ];
+            }))
           self.nixosModules.boards)
         # UEFI system, boot via edk2-rk3588 - fully native
         // (nixpkgs.lib.mapAttrs'
           (name: board:
             nixpkgs.lib.nameValuePair
-              (name + "-uefi")
-              (nixpkgs.lib.nixosSystem {
-                system = aarch64System; # native or qemu-emulated
+            (name + "-uefi")
+            (nixpkgs.lib.nixosSystem {
+              system = aarch64System; # native or qemu-emulated
 
-                specialArgs = {
-                  rk3588 = {
-                    inherit nixpkgs;
-                    pkgsKernel = pkgsNative;
-                  };
-                  inherit nixos-generators;
+              specialArgs = {
+                rk3588 = {
+                  inherit nixpkgs;
+                  pkgsKernel = pkgsNative;
                 };
-                modules = [
-                  board.core
-                  ./modules/configuration.nix
-                  {
-                    networking.hostName = name;
-                  }
+                inherit nixos-generators;
+              };
+              modules = [
+                board.core
+                ./modules/configuration.nix
+                {
+                  networking.hostName = name;
+                }
 
-                  self.nixosModules.formats
-                ];
-              }))
+                self.nixosModules.formats
+              ];
+            }))
           self.nixosModules.boards);
     }
-    // flake-utils.lib.eachDefaultSystem (system:
-    let
-      pkgs = import nixpkgs { inherit system; };
-    in
-    {
+    // flake-utils.lib.eachDefaultSystem (system: let
+      pkgs = import nixpkgs {inherit system;};
+    in {
       packages = {
         # sdImage
         sdImage-opi5 = self.nixosConfigurations.orangepi5.config.system.build.sdImage;

@@ -7,10 +7,16 @@
     nixos-rk3588.url = "path:.."; # For local testing
     # nixos-rk3588.url = "path:/home/gipsy/o/orange/nixos-rk3588";
     # nixos-rk3588.url = "github:benjajaja/nixos-rk3588";  # For production
+    opifan.url = "path:./opifan";
   };
 
-  outputs = {nixos-rk3588, ...}: let
+  outputs = {
+    nixos-rk3588,
+    opifan,
+    ...
+  }: let
     inherit (nixos-rk3588.inputs) nixpkgs;
+    inherit opifan;
     # TODO: choose your rk3588 SBC model
     boardModule = nixos-rk3588.nixosModules.boards.orangepi5plus;
 
@@ -64,7 +70,7 @@
           rk3588 = {
             inherit nixpkgs pkgsKernel;
           };
-          inherit nixpkgs;
+          inherit nixpkgs opifan;
         };
       };
 
@@ -90,6 +96,8 @@
 
           # Import the correct bootloader based on the selected bootType.
           bootloaderModule
+
+          opifan.nixosModules.default
 
           # Custom configuration
           ./configuration.nix

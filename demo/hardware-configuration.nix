@@ -32,7 +32,7 @@
     options = ["fmask=0022" "dmask=0022"];
   };
 
-  fileSystems."/srv/backup" = {
+  fileSystems."/mnt/backup" = {
     device = "/dev/disk/by-uuid/722C54791642E0EB";
     fsType = "ntfs";
     options = ["nofail"];

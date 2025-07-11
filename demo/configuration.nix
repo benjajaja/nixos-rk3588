@@ -60,7 +60,7 @@
     tree
     gnused
     gawk
-    tmux
+    busybox
     stress-ng
     lm_sensors
 
@@ -97,10 +97,11 @@
   systemd.tmpfiles.rules = builtins.concatLists [
     # Type | Path | Mode | User | Group | Age | Argument
     [
-      "d /srv/nfs 0777 root root - -"
-      "d /srv/backup 0777 root root - -"
-      "d /srv/media 0777 root root - -"
-      "d /srv/media/torrents 0777 root root - -"
+      "d /srv 0777 root users - -"
+      "d /srv/backup 0777 root users - -"
+      "d /srv/media 0777 root users - -"
+      "d /srv/media/torrents 0777 root users - -"
+      # immich - this might be because of an initial mismatch between db and fs.
       "d /srv/photos 0777 immich immich - -"
       "d /srv/photos/encoded-video 0777 immich immich - -"
       "f /srv/photos/encoded-video/.immich 0777 immich immich - -"
@@ -116,14 +117,14 @@
       "f /srv/photos/backups/.immich 0777 immich immich - -"
     ]
   ];
-  fileSystems = builtins.listToAttrs (builtins.map (name: {
-    name = "/srv/nfs/${name}";
-    value = {
-      device = "/srv/${name}";
-      fsType = "none";
-      options = ["bind"];
-    };
-  }) ["backup" "media" "photos"]);
+  # fileSystems = builtins.listToAttrs (builtins.map (name: {
+  # name = "/srv/nfs/${name}";
+  # value = {
+  # device = "/srv/${name}";
+  # fsType = "none";
+  # options = ["bind"];
+  # };
+  # }) ["backup" "media" "photos"]);
 
   services.rpcbind.enable = true;
   services.nfs.server = {
@@ -131,10 +132,11 @@
     mountdPort = 892;
     statdPort = 4000;
     exports = ''
-      /srv/nfs         192.168.8.0/24(rw,fsid=0,no_subtree_check,no_root_squash)
-      /srv/nfs/media   192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash)
-      /srv/nfs/backup  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash)
-      /srv/nfs/photos  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash)
+      /srv         192.168.8.0/24(rw,fsid=0,no_subtree_check,no_root_squash)
+      /srv/media   192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash)
+      /srv/backup  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash)
+      /srv/photos  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash)
+      /mnt/backup  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash)
     '';
   };
   networking.firewall.allowedTCPPorts = [
@@ -144,6 +146,10 @@
     4000
     80 # http / caddy
     443
+    51413 # transmission
+  ];
+  networking.firewall.allowedUDPPorts = [
+    51413 # transmission
   ];
 
   # Patch the units because they are not generated, yet no build error, probably due to nfsd and friends coming from the armbian kernel.
@@ -179,7 +185,8 @@
       ExecStartPre = "${pkgs.nfs-utils}/bin/exportfs -r";
       ExecStart = "${pkgs.nfs-utils}/bin/rpc.nfsd";
       ExecStop = "${pkgs.nfs-utils}/bin/rpc.nfsd 0";
-      ExecStopPost = "\"${pkgs.nfs-utils}/bin/exportfs -au && ${pkgs.nfs-utils}/bin/exportfs -f\"";
+      # ExecStopPost = "\"${pkgs.nfs-utils}/bin/exportfs -au && ${pkgs.nfs-utils}/bin/exportfs -f\"";
+      ExecStopPost = "${pkgs.runtimeShell} -c '${pkgs.nfs-utils}/bin/exportfs -au && ${pkgs.nfs-utils}/bin/exportfs -f'";
     };
     requires = ["nfs-mountd.service" "rpcbind.socket"];
     after = ["network-online.target" "proc-fs-nfsd.mount" "nfs-mountd.service" "rpcbind.socket"];
@@ -223,6 +230,11 @@
       "rpc-host-whitelist-enabled" = false;
       "rpc-whitelist-enabled" = false;
     };
+    downloadDirPermissions = "770";
+  };
+  users.users.transmission = {
+    isSystemUser = true;
+    extraGroups = ["users"]; # let it write (move files) to /srv/media
   };
 
   services.jackett = {

@@ -132,26 +132,30 @@
   services.rpcbind.enable = true;
   services.nfs.server = {
     enable = true;
-    mountdPort = 892;
+    mountdPort = 892; # ignored, but forced again in systemd.services.nfs-mountd
     statdPort = 4000;
     exports = ''
-      /srv         192.168.8.0/24(rw,fsid=0,no_subtree_check,no_root_squash)
-      /srv/media   192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash)
-      /srv/backup  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash)
-      /srv/photos  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash)
-      /mnt/backup  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash)
+      /srv         192.168.8.0/24(rw,fsid=0,no_subtree_check,no_root_squash,insecure)
+      /srv/media   192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash,insecure)
+      /srv/backup  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash,insecure)
+      /srv/photos  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash,insecure)
+      /mnt/backup  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash,insecure)
     '';
   };
   networking.firewall.allowedTCPPorts = [
-    111 # nfsd...
-    2049
-    892
-    4000
+    111 # rpcbind
+    2049 # nfs
+    892 # mountd
+    4000 # statd
     80 # http / caddy
     443
     51413 # transmission
   ];
   networking.firewall.allowedUDPPorts = [
+    111 # rpcbind
+    2049 # nfs
+    892 # mountd
+    4000 # statd
     51413 # transmission
   ];
 
@@ -169,7 +173,7 @@
     bindsTo = ["nfs-server.service"];
     serviceConfig = {
       Type = "forking";
-      ExecStart = "${pkgs.nfs-utils}/bin/rpc.mountd";
+      ExecStart = "${pkgs.nfs-utils}/bin/rpc.mountd --port 892";
 
       Environment = [
         "LOCALE_ARCHIVE=${pkgs.glibcLocales}/lib/locale/locale-archive"

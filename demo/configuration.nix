@@ -1,5 +1,5 @@
 {
-  # config,
+  config,
   lib,
   pkgs,
   nixpkgs,
@@ -63,6 +63,8 @@
     busybox
     stress-ng
     lm_sensors
+    wiringOP
+    opifancontrol
 
     # servers
     nfs-utils
@@ -273,6 +275,60 @@
         set vi-ins-mode-string "\1\e[6 q\2"
       '';
     };
+  };
+
+  environment.etc."orangepi-release".text = "BOARD=orangepi5plus";
+  environment.etc."opifancontrol.conf" = {
+    text = ''
+      # The GPIO pin to use for the fan. This is the wPi pin number, not the physical pin number.
+      # You can find the wPi pin number by running `gpio readall` on the Orange Pi.
+      FAN_GPIO_PIN=6
+      # TEMP_LOW, TEMP_MED, TEMP_HIGH are in degrees Celsius
+      # FAN_LOW, FAN_MED, FAN_HIGH are in percent of max fan speed, max 100.
+      # The fan will only be turned on if the temperature is above TEMP_LOW.
+      TEMP_LOW=35
+      FAN_LOW=15
+      TEMP_MED=45
+      FAN_MED=30
+      TEMP_HIGH=50
+      FAN_HIGH=100
+      # How frequently, in seconds, to poll the temperature data
+      TEMP_POLL_SECONDS=2
+      # To avoid rapid on/off switching, the fan will delay switching back on if it was recently turned off.
+      RAMP_UP_DELAY_SECONDS=5
+      # The ramp down delay is how long the fan will stay on after the temperature drops below the threshold.
+      RAMP_DOWN_DELAY_SECONDS=10
+      # The PWM range and clock are used to control the fan speed. You shouldn't need to change these unless you know what you're doing.
+      # Assumes the CPU fan runs at 25kHz.
+      PWM_RANGE=192
+      PWM_CLOCK=4
+      # Set to true to enable debug logging of fan speed changes.
+      DEBUG=true
+    '';
+    mode = "0644";
+  };
+
+  systemd.services.opifancontrol = {
+    description = "Orange Pi Fan Control Service";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "multi-user.target" ];
+    
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${opifancontrol}/bin/opifancontrol";
+      Restart = "on-failure";
+      User = "root"; # GPIO access typically requires root
+      # Ensure the service can find system binaries
+      Environment = "PATH=${pkgs.lib.makeBinPath [ wiringOP pkgs.coreutils pkgs.bash ]}";
+    };
+    
+    # Only start if the thermal zone file exists (i.e., on Orange Pi)
+    unitConfig = {
+      ConditionPathExists = "/sys/class/thermal/thermal_zone1/temp";
+    };
+    
+    # Restart service when configuration file changes
+    restartTriggers = [ config.environment.etc."opifancontrol.conf".source ];
   };
 
   system.stateVersion = "23.11";

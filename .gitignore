@@ -17,4 +17,5 @@ outputs/
 *.ext4
 *.zst
 
-demo/matrix/*
+# Matrix secrets
+matrix/*

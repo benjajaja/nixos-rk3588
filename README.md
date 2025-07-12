@@ -1,111 +1,99 @@
-# NixOS running on RK3588/RK3588s
+# Demo - Deploy via Colmena
 
-> :warning: Work in progress, use at your own risk...
+> Colmena is my personal choice mainly for remote deployment, but you can use other tools like `nixos-rebuild switch --flake .#opi5` to deploy your configuration locally. However, I won’t cover them in this guide.
 
-A minimal flake to run NixOS on RK3588/RK3588s based SBCs, support both UEFI & U-Boot.
+This is a demo of how to deploy NixOS to a remote server (or to localhost) using [colmena](https://github.com/zhaofengli/colmena).
 
-Default user: `rk`, default password: `rk3588`
+If you're not familiar with remote deployment, please read this tutorial first: [Remote Deployment - NixOS & Flakes Book](https://nixos-and-flakes.thiscute.world/best-practices/remote-deployment).
 
-## Boards
+## Configure Deployment Options
 
-UEFI support:
+We’ve added options to the `flake.nix` to allow for flexible deployment types. You can now choose between UEFI or U-Boot boot configurations, as well as configure your deployment for local or remote compilation.
 
-| Singal Board Computer | Boot from SD card  | Boot from SSD      |
-| --------------------- | ------------------ | ------------------ |
-| Orange Pi 5           | :heavy_check_mark: | :heavy_check_mark: |
-| Orange Pi 5 Plus      | :heavy_check_mark: | :heavy_check_mark: |
-| Rock 5A               | :no_entry_sign:    | :no_entry_sign:    |
+### Available Options
 
-U-Boot support:
+1. **Boot Type**: Choose between UEFI and U-Boot.
 
-| Singal Board Computer | Boot from SD card  | Boot from SSD      |
-| --------------------- | ------------------ | ------------------ |
-| Orange Pi 5           | :heavy_check_mark: | :heavy_check_mark: |
-| Orange Pi 5 Plus      | :heavy_check_mark: | :heavy_check_mark: |
-| Rock 5A               | :heavy_check_mark: | :no_entry_sign:    |
+   - Set the `bootType` in `flake.nix`:
 
-## TODO
+     ```nix
+     bootType = "uefi";  # Or use "u-boot"
+     ```
 
-- [ ] UEFI support for Rock 5A, Rock 5B, Orange Pi 5B, NanoPI R6C, NanoPi R6S.
-- [ ] verify all the hardware features available by RK3588/RK3588s
-  - [x] ethernet (rj45)
-  - [x] m.2 interface(pcie & sata)
-  - [x] wifi/bluetooth
-  - [x] audio
-  - [x] gpio
-  - [x] uart/ttl
-  - [x] gpu(mali-g610-firmware + panthor)
-  - [x] npu (works with [rkllama](https://github.com/NotPunchnox/rkllama), tested on OPi 5 Plus)
-  - ...
+2. **Compilation Type**: Choose how and where the system will be built.
 
-## Flash & Boot NixOS
+   - Set the `compilationType` to one of the following:
+     - `"local-native"`: Builds natively on the ARM-based device (local).
+     - `"remote-native"`: Builds natively on a remote ARM-based device.
+     - `"cross"`: Cross-compiles on your x86_64 machine for ARM.
 
-The SD card images built using this flake do not embed a bootloader,
-  and won't boot directly on a new board
-  (unlike Armbian images that do embed U-Boot and just run out of the box).
-You have to manually install a bootloader (UEFI or U-Boot) into the SPI flash of your board.
-To do that, you boot into an Armbian image and write a precompiled bootloader image into your SPI block device under `/dev`
-  — detailed instructions are given under links below.
-Once a bootloader is in SPI, you can boot NixOS images from this repo
-  (although make sure your NixOS config is set to use the right bootloader).
+   Example in `flake.nix`:
 
-This flake supports UEFI and U-Boot, here are the install steps:
+   ```nix
+   compilationType = "cross";  # Options: "local-native", "remote-native", "cross"
+   ```
 
-- [UEFI.md](./UEFI.md)
-- [U-Boot.md](./U-Boot.md)
+3. **System Architecture**: This is automatically configured based on your chosen compilation type.
 
-I personally recommend running U-Boot, as our support for UEFI has known bugs (https://github.com/gnull/nixos-rk3588/issues/1).
+### Example Configuration in `flake.nix`
 
-Feel free to drop a testing report in the associated [discussions page](https://github.com/gnull/nixos-rk3588/discussions/2).
+Here’s an example snippet from `flake.nix`:
 
-## Debug via serial port(UART)
+```nix
+bootType = "uefi";  # Options: "uefi" or "u-boot"
+compilationType = "cross";  # Options: "local-native", "remote-native", or "cross"
+```
 
-See [Debug.md](./Debug.md)
+---
 
-## Custom Deployment
+## Deploy to a Remote Server
 
-You can use this flake as an input to build your own configuration.
-Here is an example configuration that you can use as a starting point: [Demo - Deployment](./demo)
+To deploy to a remote server, first modify `flake.nix` to set the `bootType` and `compilationType` options to fit your needs.
 
-## How this flake works
+Then, run the following command to deploy the configuration to your remote server:
 
-A complete Linux system typically consists of five components:
+> The first time you run this command, it may take 40 minutes to a few hours to build the system, but future builds will be much faster.
 
-1. Bootloader (typically U-Boot or EDKII)
-1. Linux kernel
-1. Device trees
-1. Firmwares
-1. Root file system (rootfs)
+```bash
+nix run nixpkgs#colmena apply
+```
 
-Among these, the bootloader, the kernel, device trees, and firmwares are hardware-related and require customization for different SBCs.
-On the other hand, the majority of content in the rootfs is hardware-independent and can be shared across different SBCs.
+## Deploy Locally
 
-Hence, the fundamental approach here is to **use the hardware-specific components(bootloader, kernel, and device trees, firmwares) provided by the vendor(orangepi/rockpi/...), and combine them with the NixOS rootfs to build a comprehensive system**.
+For local native compilation (building the system directly on the device), you can set the compilation type to `"local-native"` in `flake.nix`.
 
-Regarding RK3588/RK3588s, a significant amount of work has been done by Armbian on their kernel, and device tree.
-Therefore, by integrating these components from Armbian with the NixOS rootfs, we can create a complete NixOS system.
+1. Set:
 
-The primary steps involved are:
+   ```nix
+   compilationType = "local-native";
+   ```
 
-1. Bootloader: Since no customization is required for U-Boot or [edk2-rk3588], it's also possible to directly use the precompiled image from [armbian], [edk2-rk3588], or the hardware vendor.
-2. Build the NixOS rootfs using this flake, leveraging the kernel and device tree provided by [armbian].
-   - To make all the hardware features available, we need to add its firmwares to the rootfs. Since there is no customization required for the firmwares too, we can directly use the precompiled firmwares from Armbian & Vendor too.
+2. Optionally adjust the boot type (`bootType`) for either UEFI or U-Boot.
 
-## Screenshots
+Then, run the following command to deploy locally:
 
-![Orange Pi 5 Plus Neofetch](_img/nixos-orangepi5plus.webp)
-![ROCK 5A Neofetch](_img/nixos-rock5a.webp)
+```bash
+nix run nixpkgs#colmena apply-local
+```
 
-## References
+---
 
-- [K900/nix](https://gitlab.com/K900/nix)
-- [aciceri/rock5b-nixos](https://github.com/aciceri/rock5b-nixos)
-- [nabam/nixos-rockchip](https://github.com/nabam/nixos-rockchip)
-- [fb87/nixos-orangepi-5x](https://github.com/fb87/nixos-orangepi-5x)
-- [dvdjv/socle](https://github.com/dvdjv/socle)
-- [edk2-rk3588]
+### Summary of Options
 
-And I also got a lot of help in the [NixOS on ARM Matrix group](https://matrix.to/#/#nixos-on-arm:nixos.org)!
+- **bootType**:
+  - `"uefi"`: Use UEFI bootloader.
+  - `"u-boot"`: Use U-Boot bootloader.
+- **compilationType**:
+  - `"local-native"`: Native compilation on the local ARM device.
+  - `"remote-native"`: Native compilation on a remote ARM device.
+  - `"cross"`: Cross-compilation from an x86_64 machine for ARM.
 
-[edk2-rk3588]: https://github.com/edk2-porting/edk2-rk3588
-[armbian]: https://github.com/armbian/build
+## Real-World Examples
+
+Here are some real-world examples of how to deploy NixOS to your SBCs using flakes:
+
+- <https://github.com/HeroBrine1st/flake>
+- <https://github.com/ryan4yin/nixos-config-sbc>
+  - Key Differnece: this repo use [disko] to format & mount the disk automatically.
+
+[disko]: https://github.com/nix-community/disko

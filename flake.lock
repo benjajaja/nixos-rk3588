@@ -18,9 +18,28 @@
         "type": "github"
       }
     },
+    "flake-utils_2": {
+      "inputs": {
+        "systems": "systems_2"
+      },
+      "locked": {
+        "lastModified": 1731533236,
+        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
     "gitignore": {
       "inputs": {
         "nixpkgs": [
+          "nixos-rk3588",
           "pre-commit-hooks",
           "nixpkgs"
         ]
@@ -58,6 +77,7 @@
       "inputs": {
         "nixlib": "nixlib",
         "nixpkgs": [
+          "nixos-rk3588",
           "nixpkgs"
         ]
       },
@@ -72,6 +92,28 @@
       "original": {
         "owner": "nix-community",
         "repo": "nixos-generators",
+        "type": "github"
+      }
+    },
+    "nixos-rk3588": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "nixos-generators": "nixos-generators",
+        "nixpkgs": "nixpkgs",
+        "pre-commit-hooks": "pre-commit-hooks"
+      },
+      "locked": {
+        "lastModified": 1752348269,
+        "narHash": "sha256-+V89BUydKrVinsh4BuuXrsdaPEmUonobAgUPqdsMUo8=",
+        "owner": "benjajaja",
+        "repo": "nixos-rk3588",
+        "rev": "d097e79e47608361d33c36070ebe55677cd171f0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "benjajaja",
+        "ref": "stable",
+        "repo": "nixos-rk3588",
         "type": "github"
       }
     },
@@ -91,11 +133,48 @@
         "type": "github"
       }
     },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1752012998,
+        "narHash": "sha256-Q82Ms+FQmgOBkdoSVm+FBpuFoeUAffNerR5yVV7SgT8=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "2a2130494ad647f953593c4e84ea4df839fbd68c",
+        "type": "github"
+      },
+      "original": {
+        "id": "nixpkgs",
+        "type": "indirect"
+      }
+    },
+    "opifan": {
+      "inputs": {
+        "flake-utils": "flake-utils_2",
+        "nixpkgs": "nixpkgs_2"
+      },
+      "locked": {
+        "lastModified": 1752349872,
+        "narHash": "sha256-UwxqHzqJFkvi9AlKeq6kpLYFPQzxI2r4r9AJ/QlGXX0=",
+        "owner": "benjajaja",
+        "repo": "opifancontrol",
+        "rev": "8f5a7c076e56d7bd2bf579c35bb9ed051189385b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "benjajaja",
+        "ref": "main",
+        "repo": "opifancontrol",
+        "type": "github"
+      }
+    },
     "pre-commit-hooks": {
       "inputs": {
-        "flake-compat": [],
+        "flake-compat": [
+          "nixos-rk3588"
+        ],
         "gitignore": "gitignore",
         "nixpkgs": [
+          "nixos-rk3588",
           "nixpkgs"
         ]
       },
@@ -115,13 +194,26 @@
     },
     "root": {
       "inputs": {
-        "flake-utils": "flake-utils",
-        "nixos-generators": "nixos-generators",
-        "nixpkgs": "nixpkgs",
-        "pre-commit-hooks": "pre-commit-hooks"
+        "nixos-rk3588": "nixos-rk3588",
+        "opifan": "opifan"
       }
     },
     "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "systems_2": {
       "locked": {
         "lastModified": 1681028828,
         "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",

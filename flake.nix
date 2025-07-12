@@ -1,222 +1,137 @@
 {
-  description = "A minimal NixOS configuration for the RK3588/RK3588S based SBCs";
+  description = "NixOS configuration for rk3588 remote deployment with UEFI and U-Boot options";
 
   inputs = {
-    # nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
-    flake-utils.url = "github:numtide/flake-utils";
-
-    nixos-generators = {
-      url = "github:nix-community/nixos-generators";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # For CI checks
-    pre-commit-hooks = {
-      url = "github:cachix/pre-commit-hooks.nix";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        nixpkgs-stable.follows = "nixpkgs";
-        flake-utils.follows = "flake-utils";
-        flake-compat.follows = "";
-      };
-    };
+    # Use the local flake for testing or remote flake for production.
+    # TODO: because this is a relative path input you will need to update the flake.lock file locally with `nix flake update nixos-rk3588`
+    # nixos-rk3588.url = "path:.."; # For local testing
+    # nixos-rk3588.url = "path:/home/gipsy/o/orange/nixos-rk3588";
+    nixos-rk3588.url = "github:benjajaja/nixos-rk3588?ref=stable"; # That branch/fork just switches to stable, for immich.
+    opifan.url = "github:benjajaja/opifancontrol?ref=main";
   };
 
   outputs = {
-    self,
-    nixpkgs,
-    flake-utils,
-    nixos-generators,
-    pre-commit-hooks,
+    nixos-rk3588,
+    opifan,
     ...
   }: let
-    # Local system's architecture, the host you are running this flake on.
+    inherit (nixos-rk3588.inputs) nixpkgs;
+    inherit opifan;
+    # TODO: choose your rk3588 SBC model
+    boardModule = nixos-rk3588.nixosModules.boards.orangepi5plus;
+
+    # Define system architecture and different compilation options.
+    bootType = "uefi"; # Change to "u-boot" for U-Boot
+
+    # Possible values for compilationType: "local-native", "remote-native", or "cross".
+    compilationType = "remote-native"; # Choose the compilation type here.
+
     localSystem = "x86_64-linux";
-    pkgsLocal = import nixpkgs {system = localSystem;};
-    # The native system of the target SBC.
-    aarch64System = "aarch64-linux";
-    pkgsNative = import nixpkgs {system = aarch64System;};
+    targetSystem = "aarch64-linux";
 
-    # Cross-compilation toolchain for building on the local system.
-    pkgsCross = import nixpkgs {
-      inherit localSystem;
-      crossSystem = aarch64System;
+    # Kernel packages based on compilationType (local native, remote native, or cross-compilation)
+    pkgsKernel =
+      if compilationType == "cross"
+      then
+        import nixpkgs {
+          inherit localSystem;
+          crossSystem = targetSystem;
+        }
+      else
+        # For both local-native & remote-native compilation
+        import nixpkgs {system = targetSystem;};
+
+    # Define bootloader based on bootType (UEFI or U-Boot)
+    bootloaderModule =
+      if bootType == "uefi"
+      then {
+        # grub bootloader configured for UEFI
+        boot = {
+          growPartition = true; # If partition resizing is necessary
+          kernelParams = ["console=ttyS0"]; # If you need serial console access
+          # loader.timeout = lib.mkDefault 0;  # Optional, to skip GRUB menu
+          initrd.availableKernelModules = ["uas"]; # If specific kernel modules are required
+          loader.grub = {
+            enable = true;
+            device = "nodev";
+            efiSupport = true;
+            efiInstallAsRemovable = true;
+          };
+        };
+      }
+      else
+        # U-Boot configuration using sd-image
+        boardModule.sd-image;
+
+    matrixFiles = [
+      "doublepuppet.yaml"
+      "homeserver.yaml"
+      "qdice.wtf.log.config"
+      "qdice.wtf.signing.key"
+      "mautrix-telegram-config.yaml"
+      "mautrix-whatsapp-config.yaml"
+      "registration.yaml"
+      "mautrix-telegram-registration.yaml"
+      "mautrix-whatsapp-registration.yaml"
+    ];
+    matrixPath = builtins.getEnv "PWD" + "/matrix"; # this is intentional: https://colmena.cli.rs/unstable/features/keys.html#flakes
+    matrixKeys = builtins.listToAttrs (map (filename: {
+        name = filename;
+        value = {
+          keyFile = "${matrixPath}/${filename}";
+          destDir = "/run/matrix-config";
+          # user = "matrix-synapse";
+          # group = "matrix-synapse";
+          permissions = "0600";
+        };
+      })
+      matrixFiles);
+  in {
+    colmena = {
+      meta = {
+        nixpkgs = import nixpkgs {system = localSystem;};
+        specialArgs = {
+          rk3588 = {
+            inherit nixpkgs pkgsKernel;
+          };
+          inherit nixpkgs opifan;
+        };
+      };
+
+      ## TODO: to apply locally this "opi5" must match your local host name, such as "orangepi5" or "orangepi5plus"
+      ops = {
+        deployment.targetHost =
+          if compilationType != "local-native"
+          # TODO: you will want to change this IP to another address or host name
+          then "ops"
+          else null;
+        deployment.targetUser =
+          if compilationType != "local-native"
+          then "root"
+          else null;
+        deployment.buildOnTarget = compilationType == "remote-native";
+
+        # Allow local deployment only if building locally
+        deployment.allowLocalDeployment = compilationType == "local-native";
+
+        imports = [
+          # import the rk3588 module, which contains the configuration for bootloader/kernel/firmware
+          boardModule.core
+
+          # Import the correct bootloader based on the selected bootType.
+          bootloaderModule
+
+          opifan.nixosModules.default
+
+          # Custom configuration
+          ./configuration.nix
+          ./user-group.nix
+          # TODO: you will likely need a fileSystems entry and additional availableKernelModules these can be included from hardware-configuration.nix generated by `nixos-generate-config`.
+          ./hardware-configuration.nix
+        ];
+
+        deployment.keys = matrixKeys;
+      };
     };
-  in
-    {
-      nixosModules = {
-        orangepi5plus = throw "'nixosModules.orangepi5plus' has been renamed to 'nixosModules.boards.orangepi5plus'";
-        orangepi5b = throw "'nixosModules.orangepi5b' has been renamed to 'nixosModules.boards.orangepi5b'";
-        orangepi5 = throw "'nixosModules.orangepi5' has been renamed to 'nixosModules.boards.orangepi5'";
-        rock5a = throw "'nixosModules.rock5a' has been renamed to 'nixosModules.boards.rock5a'";
-
-        boards = {
-          # Orange Pi 5 SBC
-          orangepi5 = {
-            core = import ./modules/boards/orangepi5.nix;
-            sd-image = ./modules/sd-image/orangepi5.nix;
-          };
-          # Orange Pi 5b SBC
-          orangepi5b = {
-            core = import ./modules/boards/orangepi5b.nix;
-            sd-image = ./modules/sd-image/orangepi5b.nix;
-          };
-          # Orange Pi 5 Plus SBC
-          orangepi5plus = {
-            core = import ./modules/boards/orangepi5plus.nix;
-            sd-image = ./modules/sd-image/orangepi5plus.nix;
-          };
-          # Rock 5 Model A SBC
-          rock5a = {
-            core = import ./modules/boards/rock5a.nix;
-            sd-image = ./modules/sd-image/rock5a.nix;
-          };
-        };
-
-        formats = {config, ...}: {
-          imports = [
-            nixos-generators.nixosModules.all-formats
-          ];
-
-          nixpkgs.hostPlatform = aarch64System;
-          formatConfigs.rk3588-raw-efi = import ./modules/rk3588-raw-efi.nix;
-        };
-      };
-
-      nixosConfigurations =
-        # sdImage - boot via U-Boot - fully native
-        (builtins.mapAttrs
-          (name: board:
-            nixpkgs.lib.nixosSystem {
-              system = aarch64System; # native or qemu-emulated
-              specialArgs.rk3588 = {
-                inherit nixpkgs;
-                pkgsKernel = pkgsNative;
-              };
-              modules = [
-                ./modules/configuration.nix
-                board.core
-                board.sd-image
-
-                {
-                  networking.hostName = name;
-                  sdImage.imageBaseName = "${name}-sd-image";
-                }
-              ];
-            })
-          self.nixosModules.boards)
-        # sdImage - boot via U-Boot - fully cross-compiled
-        // (nixpkgs.lib.mapAttrs'
-          (name: board:
-            nixpkgs.lib.nameValuePair
-            (name + "-cross")
-            (nixpkgs.lib.nixosSystem {
-              system = localSystem; # x64
-              specialArgs.rk3588 = {
-                inherit nixpkgs;
-                pkgsKernel = pkgsCross;
-              };
-              modules = [
-                ./modules/configuration.nix
-                board.core
-                board.sd-image
-
-                {
-                  networking.hostName = name;
-                  sdImage.imageBaseName = "${name}-sd-image";
-
-                  # Use the cross-compilation toolchain to build the whole system.
-                  nixpkgs.crossSystem.config = "aarch64-unknown-linux-gnu";
-                }
-              ];
-            }))
-          self.nixosModules.boards)
-        # UEFI system, boot via edk2-rk3588 - fully native
-        // (nixpkgs.lib.mapAttrs'
-          (name: board:
-            nixpkgs.lib.nameValuePair
-            (name + "-uefi")
-            (nixpkgs.lib.nixosSystem {
-              system = aarch64System; # native or qemu-emulated
-
-              specialArgs = {
-                rk3588 = {
-                  inherit nixpkgs;
-                  pkgsKernel = pkgsNative;
-                };
-                inherit nixos-generators;
-              };
-              modules = [
-                board.core
-                ./modules/configuration.nix
-                {
-                  networking.hostName = name;
-                }
-
-                self.nixosModules.formats
-              ];
-            }))
-          self.nixosModules.boards);
-    }
-    // flake-utils.lib.eachDefaultSystem (system: let
-      pkgs = import nixpkgs {inherit system;};
-    in {
-      packages = {
-        # sdImage
-        sdImage-opi5 = self.nixosConfigurations.orangepi5.config.system.build.sdImage;
-        sdImage-opi5b = self.nixosConfigurations.orangepi5b.config.system.build.sdImage;
-        sdImage-opi5plus = self.nixosConfigurations.orangepi5plus.config.system.build.sdImage;
-        sdImage-rock5a = self.nixosConfigurations.rock5a.config.system.build.sdImage;
-
-        sdImage-opi5-cross = self.nixosConfigurations.orangepi5-cross.config.system.build.sdImage;
-        sdImage-opi5b-cross = self.nixosConfigurations.orangepi5b-cross.config.system.build.sdImage;
-        sdImage-opi5plus-cross = self.nixosConfigurations.orangepi5plus-cross.config.system.build.sdImage;
-        sdImage-rock5a-cross = self.nixosConfigurations.rock5a-cross.config.system.build.sdImage;
-
-        # UEFI raw image
-        rawEfiImage-opi5 = self.nixosConfigurations.orangepi5-uefi.config.formats.rk3588-raw-efi;
-        rawEfiImage-opi5plus = self.nixosConfigurations.orangepi5plus-uefi.config.formats.rk3588-raw-efi;
-        rawEfiImage-rock5a = self.nixosConfigurations.rock5a-uefi.config.formats.rk3588-raw-efi;
-      };
-
-      devShells.fhsEnv =
-        # the code here is mainly copied from:
-        #   https://nixos.wiki/wiki/Linux_kernel#Embedded_Linux_Cross-compile_xconfig_and_menuconfig
-        (pkgs.buildFHSUserEnv {
-          name = "kernel-build-env";
-          targetPkgs = pkgs_: (with pkgs_;
-            [
-              # we need theses packages to make `make menuconfig` work.
-              pkg-config
-              ncurses
-              # arm64 cross-compilation toolchain
-              pkgsCross.gccStdenv.cc
-              # native gcc
-              gcc
-            ]
-            ++ pkgs.linux.nativeBuildInputs);
-          runScript = pkgs.writeScript "init.sh" ''
-            # set the cross-compilation environment variables.
-            export CROSS_COMPILE=aarch64-unknown-linux-gnu-
-            export ARCH=arm64
-            export PKG_CONFIG_PATH="${pkgs.ncurses.dev}/lib/pkgconfig:"
-            exec bash
-          '';
-        }).env;
-
-      devShells.default = pkgs.mkShell {
-        inherit (self.checks.${system}.pre-commit-check) shellHook;
-      };
-
-      checks.pre-commit-check = pre-commit-hooks.lib.${system}.run {
-        src = ./.;
-        hooks = {
-          # nix
-          deadnix.enable = true;
-          alejandra.enable = true;
-          statix.enable = true;
-        };
-      };
-    });
+  };
 }

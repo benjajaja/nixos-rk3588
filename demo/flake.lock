@@ -103,14 +103,18 @@
         "pre-commit-hooks": "pre-commit-hooks"
       },
       "locked": {
-        "path": "..",
-        "type": "path"
+        "lastModified": 1752338375,
+        "narHash": "sha256-XZ3LY3wKZcTw005XgYa3Mi7aWIg8WNvZ91h3QN9/ByE=",
+        "ref": "refs/heads/main",
+        "rev": "bb1fc223445cc7a15a5fd04ffee4aa666d446ec7",
+        "revCount": 135,
+        "type": "git",
+        "url": "file:///home/gipsy/o/orange/nixos-rk3588"
       },
       "original": {
-        "path": "..",
-        "type": "path"
-      },
-      "parent": []
+        "type": "git",
+        "url": "file:///home/gipsy/o/orange/nixos-rk3588"
+      }
     },
     "nixpkgs": {
       "locked": {
@@ -148,14 +152,20 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "path": "./opifan",
-        "type": "path"
+        "dir": "demo/opifan",
+        "lastModified": 1752338375,
+        "narHash": "sha256-XZ3LY3wKZcTw005XgYa3Mi7aWIg8WNvZ91h3QN9/ByE=",
+        "ref": "refs/heads/main",
+        "rev": "bb1fc223445cc7a15a5fd04ffee4aa666d446ec7",
+        "revCount": 135,
+        "type": "git",
+        "url": "file:///home/gipsy/o/orange/nixos-rk3588"
       },
       "original": {
-        "path": "./opifan",
-        "type": "path"
-      },
-      "parent": []
+        "dir": "demo/opifan",
+        "type": "git",
+        "url": "file:///home/gipsy/o/orange/nixos-rk3588"
+      }
     },
     "pre-commit-hooks": {
       "inputs": {

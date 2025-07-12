@@ -4,10 +4,12 @@
   inputs = {
     # Use the local flake for testing or remote flake for production.
     # TODO: because this is a relative path input you will need to update the flake.lock file locally with `nix flake update nixos-rk3588`
-    nixos-rk3588.url = "path:.."; # For local testing
+    # nixos-rk3588.url = "path:.."; # For local testing
     # nixos-rk3588.url = "path:/home/gipsy/o/orange/nixos-rk3588";
     # nixos-rk3588.url = "github:benjajaja/nixos-rk3588";  # For production
-    opifan.url = "path:./opifan";
+    nixos-rk3588.url = "git+file:///home/gipsy/o/orange/nixos-rk3588";
+    # opifan.url = "path:./opifan";
+    opifan.url = "git+file:///home/gipsy/o/orange/nixos-rk3588?dir=demo/opifan";
   };
 
   outputs = {

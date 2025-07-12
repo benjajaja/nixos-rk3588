@@ -1,32 +1,5 @@
-# gpio readall
-# +------+-----+----------+--------+---+ PI5 PLUS +---+--------+----------+-----+------+
-# | GPIO | wPi |   Name   |  Mode  | V | Physical | V |  Mode  | Name     | wPi | GPIO |
-# +------+-----+----------+--------+---+----++----+---+--------+----------+-----+------+
-# |      |     |     3.3V |        |   |  1 || 2  |   |        | 5V       |     |      |
-# |   16 |   0 |    SDA.2 |     IN | 0 |  3 || 4  |   |        | 5V       |     |      |
-# |   15 |   1 |    SCL.2 |     IN | 0 |  5 || 6  |   |        | GND      |     |      |
-# |   62 |   2 |    PWM14 |     IN | 1 |  7 || 8  | 0 | IN     | GPIO1_A1 | 3   | 33   |
-# |      |     |      GND |        |   |  9 || 10 | 0 | IN     | GPIO1_A0 | 4   | 32   |
-# |   36 |   5 | GPIO1_A4 |     IN | 0 | 11 || 12 | 0 | ALT11  | GPIO3_A1 | 6   | 97   |
-# |   39 |   7 | GPIO1_A7 |     IN | 1 | 13 || 14 |   |        | GND      |     |      |
-# |   40 |   8 | GPIO1_B0 |     IN | 1 | 15 || 16 | 1 | IN     | GPIO3_B5 | 9   | 109  |
-# |      |     |     3.3V |        |   | 17 || 18 | 0 | IN     | GPIO3_B6 | 10  | 110  |
-# |   42 |  11 | SPI0_TXD |     IN | 0 | 19 || 20 |   |        | GND      |     |      |
-# |   41 |  12 | SPI0_RXD |     IN | 0 | 21 || 22 | 0 | IN     | GPIO1_A2 | 13  | 34   |
-# |   43 |  14 | SPI0_CLK |     IN | 0 | 23 || 24 | 1 | IN     | SPI0_CS0 | 15  | 44   |
-# |      |     |      GND |        |   | 25 || 26 | 1 | IN     | SPI0_CS1 | 16  | 45   |
-# |   47 |  17 | GPIO1_B7 |     IN | 1 | 27 || 28 | 1 | IN     | GPIO1_B6 | 18  | 46   |
-# |   63 |  19 | GPIO1_D7 |     IN | 1 | 29 || 30 |   |        | GND      |     |      |
-# |   96 |  20 | GPIO3_A0 |     IN | 1 | 31 || 32 | 0 | IN     | GPIO1_A3 | 21  | 35   |
-# |  114 |  22 | GPIO3_C2 |     IN | 0 | 33 || 34 |   |        | GND      |     |      |
-# |   98 |  23 | GPIO3_A2 |     IN | 1 | 35 || 36 | 0 | IN     | GPIO3_A5 | 24  | 101  |
-# |  113 |  25 | GPIO3_C1 |     IN | 0 | 37 || 38 | 0 | IN     | GPIO3_A4 | 26  | 100  |
-# |      |     |      GND |        |   | 39 || 40 | 1 | IN     | GPIO3_A3 | 27  | 99   |
-# +------+-----+----------+--------+---+----++----+---+--------+----------+-----+------+
-# | GPIO | wPi |   Name   |  Mode  | V | Physical | V |  Mode  | Name     | wPi | GPIO |
-# +------+-----+----------+--------+---+ PI5 PLUS +---+--------+----------+-----+------+
 {
-  description = "Orange Pi Fan Control with wiringOP";
+  description = "Orange Pi Fan Control with wiringOP - Multi-Fan Support";
 
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
@@ -322,43 +295,9 @@
       }: let
         cfg = config.services.opifancontrol;
 
-        # Generate configuration file content from Nix options
-        configFile = pkgs.writeText "opifancontrol.conf" ''
-          FAN_GPIO_PIN=${toString cfg.config.fanGpioPin}
-          TEMP_LOW=${toString cfg.config.tempLow}
-          FAN_LOW=${toString cfg.config.fanLow}
-          TEMP_MED=${toString cfg.config.tempMed}
-          FAN_MED=${toString cfg.config.fanMed}
-          TEMP_HIGH=${toString cfg.config.tempHigh}
-          FAN_HIGH=${toString cfg.config.fanHigh}
-          TEMP_POLL_SECONDS=${toString cfg.config.tempPollSeconds}
-          RAMP_UP_DELAY_SECONDS=${toString cfg.config.rampUpDelaySeconds}
-          RAMP_DOWN_DELAY_SECONDS=${toString cfg.config.rampDownDelaySeconds}
-          PWM_RANGE=${toString cfg.config.pwmRange}
-          PWM_CLOCK=${toString cfg.config.pwmClock}
-          DEBUG=${
-            if cfg.config.debug
-            then "true"
-            else "false"
-          }
-        '';
-      in {
-        options.services.opifancontrol = {
-          enable = lib.mkEnableOption "Orange Pi Fan Control Service";
-
-          package = lib.mkOption {
-            type = lib.types.package;
-            default = self.packages.${pkgs.system}.opifancontrol;
-            description = "The opifancontrol package to use";
-          };
-
-          wiringOP = lib.mkOption {
-            type = lib.types.package;
-            default = self.packages.${pkgs.system}.wiringOP;
-            description = "The wiringOP package to use";
-          };
-
-          config = {
+        # Define the fan configuration type
+        fanConfigType = lib.types.submodule {
+          options = {
             fanGpioPin = lib.mkOption {
               type = lib.types.int;
               default = 6;
@@ -437,6 +376,105 @@
               description = "Enable debug logging";
             };
           };
+        };
+
+        # Generate configuration file content for a specific fan
+        mkConfigFile = fanName: fanConfig: pkgs.writeText "opifancontrol-${fanName}.conf" ''
+          FAN_GPIO_PIN=${toString fanConfig.fanGpioPin}
+          TEMP_LOW=${toString fanConfig.tempLow}
+          FAN_LOW=${toString fanConfig.fanLow}
+          TEMP_MED=${toString fanConfig.tempMed}
+          FAN_MED=${toString fanConfig.fanMed}
+          TEMP_HIGH=${toString fanConfig.tempHigh}
+          FAN_HIGH=${toString fanConfig.fanHigh}
+          TEMP_POLL_SECONDS=${toString fanConfig.tempPollSeconds}
+          RAMP_UP_DELAY_SECONDS=${toString fanConfig.rampUpDelaySeconds}
+          RAMP_DOWN_DELAY_SECONDS=${toString fanConfig.rampDownDelaySeconds}
+          PWM_RANGE=${toString fanConfig.pwmRange}
+          PWM_CLOCK=${toString fanConfig.pwmClock}
+          DEBUG=${
+            if fanConfig.debug
+            then "true"
+            else "false"
+          }
+        '';
+
+        # Create systemd service for a specific fan
+        mkFanService = fanName: fanConfig: 
+          let
+            configFile = mkConfigFile fanName fanConfig;
+          in {
+            "opifancontrol-${fanName}" = {
+              description = "Orange Pi Fan Control Service - ${fanName}";
+              wantedBy = ["multi-user.target"];
+              after = ["multi-user.target"];
+
+              serviceConfig = {
+                Type = "simple";
+                ExecStart = "${cfg.package}/bin/opifancontrol ${configFile}";
+                Restart = "on-failure";
+                User = "root"; # GPIO access typically requires root
+                # Ensure the service can find system binaries
+                Environment = "PATH=${pkgs.lib.makeBinPath [cfg.wiringOP pkgs.coreutils pkgs.bash]}";
+              };
+
+              # Only start if the thermal zone file exists (i.e., on Orange Pi)
+              unitConfig = {
+                ConditionPathExists = "/sys/class/thermal/thermal_zone1/temp";
+              };
+
+              # Restart service when configuration changes
+              restartTriggers = [configFile];
+            };
+          };
+
+        # Generate all fan services
+        fanServices = lib.mkMerge (lib.mapAttrsToList mkFanService cfg.fans);
+      in {
+        options.services.opifancontrol = {
+          enable = lib.mkEnableOption "Orange Pi Fan Control Service";
+
+          package = lib.mkOption {
+            type = lib.types.package;
+            default = self.packages.${pkgs.system}.opifancontrol;
+            description = "The opifancontrol package to use";
+          };
+
+          wiringOP = lib.mkOption {
+            type = lib.types.package;
+            default = self.packages.${pkgs.system}.wiringOP;
+            description = "The wiringOP package to use";
+          };
+
+          fans = lib.mkOption {
+            type = lib.types.attrsOf fanConfigType;
+            default = {};
+            description = "Configuration for each fan";
+            example = lib.literalExpression ''
+              {
+                cpu = {
+                  fanGpioPin = 6;
+                  tempLow = 45;
+                  fanLow = 30;
+                  tempMed = 55;
+                  fanMed = 60;
+                  tempHigh = 65;
+                  fanHigh = 100;
+                  debug = true;
+                };
+                closet = {
+                  fanGpioPin = 22;
+                  tempLow = 45;
+                  fanLow = 30;
+                  tempMed = 55;
+                  fanMed = 60;
+                  tempHigh = 65;
+                  fanHigh = 100;
+                  debug = true;
+                };
+              }
+            '';
+          };
 
           boardType = lib.mkOption {
             type = lib.types.str;
@@ -449,29 +487,8 @@
           # Set up the board identification file
           environment.etc."orangepi-release".text = "BOARD=${cfg.boardType}";
 
-          # Define the systemd service
-          systemd.services.opifancontrol = {
-            description = "Orange Pi Fan Control Service";
-            wantedBy = ["multi-user.target"];
-            after = ["multi-user.target"];
-
-            serviceConfig = {
-              Type = "simple";
-              ExecStart = "${cfg.package}/bin/opifancontrol ${configFile}";
-              Restart = "on-failure";
-              User = "root"; # GPIO access typically requires root
-              # Ensure the service can find system binaries
-              Environment = "PATH=${pkgs.lib.makeBinPath [cfg.wiringOP pkgs.coreutils pkgs.bash]}";
-            };
-
-            # Only start if the thermal zone file exists (i.e., on Orange Pi)
-            unitConfig = {
-              ConditionPathExists = "/sys/class/thermal/thermal_zone1/temp";
-            };
-
-            # Restart service when configuration changes
-            restartTriggers = [configFile];
-          };
+          # Define the systemd services for all fans
+          systemd.services = fanServices;
         };
       };
     };

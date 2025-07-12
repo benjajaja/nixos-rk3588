@@ -308,7 +308,7 @@
 
   services.opifancontrol = {
     enable = true;
-    config = {
+    fans."cpu" = {
       fanGpioPin = 6;
       tempLow = 45;
       fanLow = 30;
@@ -316,6 +316,16 @@
       fanMed = 60;
       tempHigh = 65;
       fanHigh = 100;
+      debug = true;
+    };
+    fans."closet" = {
+      fanGpioPin = 22;
+      tempLow = 30;
+      fanLow = 20;
+      tempMed = 45;
+      fanMed = 50;
+      tempHigh = 55;
+      fanHigh = 70;
       debug = true;
     };
     boardType = "orangepi5plus";

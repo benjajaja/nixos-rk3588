@@ -66,6 +66,7 @@
     lm_sensors
     opifan.packages.${pkgs.system}.wiringOP
     opifan.packages.${pkgs.system}.opifancontrol
+    ncdu
 
     # servers
     nfs-utils
@@ -103,7 +104,11 @@
       "d /srv 0777 root users - -"
       "d /srv/backup 0777 root users - -"
       "d /srv/media 0777 root users - -"
-      "d /srv/media/torrents 0777 root users - -"
+      "d /srv/media/torrents 0777 transmission users - -"
+      "d /srv/media/Movies 0777 root users - -"
+      "d /srv/media/TV\ Shows 0777 root users - -"
+      "d /srv/media/torrents/radarr 0777 transmission users - -"
+      "d /srv/media/torrents/sonarr 0777 transmission users - -"
       # immich - this might be because of an initial mismatch between db and fs.
       "d /srv/photos 0777 immich immich - -"
       "d /srv/photos/encoded-video 0777 immich immich - -"
@@ -118,16 +123,13 @@
       "f /srv/photos/thumbs/.immich 0777 immich immich - -"
       "d /srv/photos/backups 0777 immich immich - -"
       "f /srv/photos/backups/.immich 0777 immich immich - -"
+      # matrix
+      # "d /var/lib/matrix-synapse 0750 matrix-synapse matrix-synapse -"
+      # "d /var/lib/matrix-synapse/media 0750 matrix-synapse matrix-synapse -"
+      # "d /var/lib/mautrix-telegram 0750 mautrix-telegram mautrix-telegram -"
+      # "d /var/lib/mautrix-whatsapp 0750 mautrix-whatsapp mautrix-whatsapp -"
     ]
   ];
-  # fileSystems = builtins.listToAttrs (builtins.map (name: {
-  # name = "/srv/nfs/${name}";
-  # value = {
-  # device = "/srv/${name}";
-  # fsType = "none";
-  # options = ["bind"];
-  # };
-  # }) ["backup" "media" "photos"]);
 
   services.rpcbind.enable = true;
   services.nfs.server = {
@@ -236,6 +238,10 @@
       "rpc-authentication-required" = false;
       "rpc-host-whitelist-enabled" = false;
       "rpc-whitelist-enabled" = false;
+      "ratio-limit" = "2.0";
+      "ratio-limit-enabled" = true;
+      "idle-seeding-limit" = 60;
+      "idle-seeding-limit-enabled" = true;
     };
     downloadDirPermissions = "770";
   };
@@ -250,6 +256,24 @@
   };
   services.flaresolverr = {
     enable = false;
+    openFirewall = true;
+  };
+  services.sonarr = {
+    enable = true;
+    openFirewall = true;
+  };
+  users.users.sonarr = {
+    extraGroups = ["users"];
+  };
+  services.radarr = {
+    enable = true;
+    openFirewall = true;
+  };
+  users.users.radarr = {
+    extraGroups = ["users"];
+  };
+  services.prowlarr = {
+    enable = true;
     openFirewall = true;
   };
 
@@ -295,6 +319,23 @@
       debug = true;
     };
     boardType = "orangepi5plus";
+  };
+
+  services.matrix-synapse = {
+    enable = false;
+    extras = [
+      "oidc"
+      "systemd"
+      "url-preview"
+      "user-search"
+    ];
+    extraConfigFiles = ["/run/matrix-config/homeserver.yaml"];
+    settings = {
+      database = {
+        name = "sqlite3";
+        args.database = "/var/lib/matrix-synapse/homeserver.db";
+      };
+    };
   };
 
   system.stateVersion = "23.11";

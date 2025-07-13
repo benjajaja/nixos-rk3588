@@ -19,3 +19,4 @@ outputs/
 
 # Matrix secrets
 matrix/*
+.env

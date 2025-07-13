@@ -5,8 +5,7 @@
   nixpkgs,
   opifan,
   ...
-}:
-let 
+}: let
   domain = "qdice.wtf";
 in {
   # =========================================================================
@@ -260,6 +259,7 @@ in {
   services.sonarr = {
     enable = true;
     openFirewall = true;
+    settings.auth.apikey = builtins.getEnv "SONARR_KEY";
   };
   users.users.sonarr = {
     extraGroups = ["users"];
@@ -267,6 +267,7 @@ in {
   services.radarr = {
     enable = true;
     openFirewall = true;
+    settings.auth.apikey = builtins.getEnv "RADARR_KEY";
   };
   users.users.radarr = {
     extraGroups = ["users"];
@@ -274,6 +275,7 @@ in {
   services.prowlarr = {
     enable = true;
     openFirewall = true;
+    settings.auth.apikey = builtins.getEnv "PROWLARR_KEY";
   };
 
   services.caddy = {
@@ -393,7 +395,7 @@ in {
   services.homepage-dashboard = {
     enable = true;
     openFirewall = true;
-    allowedHosts = "homepage.qdice.wtf,ops:8082";
+    allowedHosts = "home.qdice.wtf,ops:8082";
     widgets = [
       {
         openmeteo = {
@@ -414,8 +416,18 @@ in {
           refresh = 3000;
         };
       }
-      { resources = { label = "/"; disk = [ "/" ]; }; }
-      { resources = { label = "/mnt/backup"; disk = [ "/mnt/backup" ]; }; }
+      {
+        resources = {
+          label = "/";
+          disk = ["/"];
+        };
+      }
+      {
+        resources = {
+          label = "/mnt/backup";
+          disk = ["/mnt/backup"];
+        };
+      }
     ];
     services = [
       {
@@ -469,7 +481,7 @@ in {
               description = "Uptime monitor";
               widget = {
                 type = "uptimekuma";
-                url = "http://localhost:19999";
+                url = "http://localhost:3001";
                 slug = "default";
               };
             };
@@ -486,7 +498,7 @@ in {
               widget = {
                 type = "immich";
                 url = "https://photos.${domain}";
-                key = "TODO";
+                key = builtins.getEnv "IMMICH_ADMIN_KEY";
                 version = 2;
               };
             };
@@ -523,6 +535,7 @@ in {
               widget = {
                 type = "radarr";
                 url = "http://localhost:7878";
+                key = builtins.getEnv "RADARR_KEY";
                 enableBlocks = true;
                 showEpisodeNumber = true;
               };
@@ -536,6 +549,7 @@ in {
               widget = {
                 type = "sonarr";
                 url = "http://localhost:8989";
+                key = builtins.getEnv "SONARR_KEY";
                 enableBlocks = true;
                 showEpisodeNumber = true;
               };
@@ -549,6 +563,7 @@ in {
               widget = {
                 type = "prowlarr";
                 url = "http://localhost:9696";
+                key = builtins.getEnv "PROWLARR_KEY";
               };
             };
           }

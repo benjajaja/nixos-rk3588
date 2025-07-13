@@ -133,5 +133,22 @@
         deployment.keys = matrixKeys;
       };
     };
+    devShells.${localSystem}.default = let
+      pkgs = import nixpkgs {system = localSystem;};
+    in
+      pkgs.mkShell {
+        buildInputs = with pkgs; [
+          colmena
+        ];
+
+        shellHook = ''
+          if [ -f .env ]; then
+            set -a
+            source .env
+            set +a
+            echo "Environment variables loaded from .env"
+          fi
+        '';
+      };
   };
 }

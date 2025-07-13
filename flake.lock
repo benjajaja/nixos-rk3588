@@ -153,11 +153,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1752349872,
-        "narHash": "sha256-UwxqHzqJFkvi9AlKeq6kpLYFPQzxI2r4r9AJ/QlGXX0=",
+        "lastModified": 1752366884,
+        "narHash": "sha256-ebZxIvuoFamO+njv9qDTm7EJlUluuDsGsYpWlWPcC9E=",
         "owner": "benjajaja",
         "repo": "opifancontrol",
-        "rev": "8f5a7c076e56d7bd2bf579c35bb9ed051189385b",
+        "rev": "d09c3c7d5dff7fdaf2d26731e846d0227ac70f3b",
         "type": "github"
       },
       "original": {

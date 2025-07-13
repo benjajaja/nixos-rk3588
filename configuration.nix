@@ -5,7 +5,10 @@
   nixpkgs,
   opifan,
   ...
-}: {
+}:
+let 
+  domain = "qdice.wtf";
+in {
   # =========================================================================
   #      Base NixOS Configuration
   # =========================================================================
@@ -250,10 +253,6 @@
     extraGroups = ["users"]; # let it write (move files) to /srv/media
   };
 
-  services.jackett = {
-    enable = true;
-    openFirewall = true;
-  };
   services.flaresolverr = {
     enable = false;
     openFirewall = true;
@@ -284,6 +283,38 @@
         reverse_proxy localhost:2283
       '';
     };
+    virtualHosts."ops.qdice.wtf" = {
+      extraConfig = ''
+        reverse_proxy localhost:19999
+        basicauth {
+          benjajaja $2a$14$4pZrY1ZOqTSVnAgtLfatYuTKoHCD7lXukoFNeC0ZFH833lNrM/W7S
+        }
+      '';
+    };
+    virtualHosts."glances.qdice.wtf" = {
+      extraConfig = ''
+        reverse_proxy localhost:61208
+        basicauth {
+          benjajaja $2a$14$4pZrY1ZOqTSVnAgtLfatYuTKoHCD7lXukoFNeC0ZFH833lNrM/W7S
+        }
+      '';
+    };
+    virtualHosts."kuma.qdice.wtf" = {
+      extraConfig = ''
+        reverse_proxy localhost:3001
+        basicauth {
+          benjajaja $2a$14$4pZrY1ZOqTSVnAgtLfatYuTKoHCD7lXukoFNeC0ZFH833lNrM/W7S
+        }
+      '';
+    };
+    virtualHosts."home.qdice.wtf" = {
+      extraConfig = ''
+        reverse_proxy localhost:8082
+        basicauth {
+          benjajaja $2a$14$4pZrY1ZOqTSVnAgtLfatYuTKoHCD7lXukoFNeC0ZFH833lNrM/W7S
+        }
+      '';
+    };
     virtualHosts."lz.qdice.wtf" = {
       extraConfig = ''
         root * /srv/www
@@ -310,23 +341,23 @@
     enable = true;
     fans."cpu" = {
       fanGpioPin = 6;
-      tempLow = 45;
+      tempLow = 35;
+      tempMed = 45;
+      tempHigh = 50;
       fanLow = 30;
-      tempMed = 55;
-      fanMed = 60;
-      tempHigh = 65;
-      fanHigh = 100;
-      debug = true;
+      fanMed = 50;
+      fanHigh = 60;
+      debug = false;
     };
     fans."closet" = {
       fanGpioPin = 22;
-      tempLow = 30;
-      fanLow = 20;
+      tempLow = 40;
       tempMed = 45;
-      fanMed = 50;
-      tempHigh = 55;
-      fanHigh = 70;
-      debug = true;
+      tempHigh = 50;
+      fanLow = 20;
+      fanMed = 30;
+      fanHigh = 40;
+      debug = false;
     };
     boardType = "orangepi5plus";
   };
@@ -346,6 +377,184 @@
         args.database = "/var/lib/matrix-synapse/homeserver.db";
       };
     };
+  };
+
+  services.glances = {
+    enable = true;
+    openFirewall = true;
+  };
+  services.uptime-kuma = {
+    enable = true;
+    settings = {
+      HOST = "0.0.0.0";
+    };
+  };
+
+  services.homepage-dashboard = {
+    enable = true;
+    openFirewall = true;
+    allowedHosts = "homepage.qdice.wtf,ops:8082";
+    widgets = [
+      {
+        openmeteo = {
+          label = "Lanzarote";
+          units = "metric";
+          latitude = 28.96302000;
+          longitude = -13.54769000;
+          cache = 5;
+        };
+      }
+      {
+        resources = {
+          cpu = true;
+          memory = true;
+          cputemp = true;
+          uptime = true;
+          units = "metric";
+          refresh = 3000;
+        };
+      }
+      { resources = { label = "/"; disk = [ "/" ]; }; }
+      { resources = { label = "/mnt/backup"; disk = [ "/mnt/backup" ]; }; }
+    ];
+    services = [
+      {
+        "System" = [
+          {
+            "CPU" = {
+              icon = "glances";
+              href = "https://glances.${domain}";
+              widget = {
+                type = "glances";
+                url = "http://localhost:61208";
+                version = 4;
+                metric = "cpu";
+              };
+            };
+          }
+          {
+            "Memory" = {
+              widget = {
+                type = "glances";
+                url = "http://localhost:61208";
+                version = 4;
+                metric = "memory";
+              };
+            };
+          }
+          {
+            "Network" = {
+              widget = {
+                type = "glances";
+                url = "http://localhost:61208";
+                version = 4;
+                metric = "network:enP3p49s0";
+              };
+            };
+          }
+          {
+            "Processes" = {
+              widget = {
+                type = "glances";
+                url = "http://localhost:61208";
+                version = 4;
+                metric = "process";
+              };
+            };
+          }
+          {
+            "Uptime Kuma" = {
+              icon = "uptime-kuma";
+              href = "https://kuma.${domain}";
+              description = "Uptime monitor";
+              widget = {
+                type = "uptimekuma";
+                url = "http://localhost:19999";
+                slug = "default";
+              };
+            };
+          }
+        ];
+      }
+      {
+        "Servers" = [
+          {
+            Immich = {
+              icon = "immich";
+              href = "https://photos.${domain}";
+              description = "Immich picture server";
+              widget = {
+                type = "immich";
+                url = "https://photos.${domain}";
+                key = "TODO";
+                version = 2;
+              };
+            };
+          }
+          {
+            Caddy = {
+              icon = "caddy";
+              description = "Caddy web server";
+              widget = {
+                type = "caddy";
+                url = "http://localhost:2019";
+              };
+            };
+          }
+        ];
+      }
+      {
+        "Downloads" = [
+          {
+            Transmission = {
+              icon = "transmission";
+              description = "Torrent client";
+              widget = {
+                type = "transmission";
+                url = "http://localhost:9091";
+              };
+            };
+          }
+          {
+            Radarr = {
+              icon = "radarr";
+              href = "http://ops:7878";
+              description = "Movies";
+              widget = {
+                type = "radarr";
+                url = "http://localhost:7878";
+                enableBlocks = true;
+                showEpisodeNumber = true;
+              };
+            };
+          }
+          {
+            Sonarr = {
+              icon = "sonarr";
+              href = "http://ops:8989";
+              description = "TV Shows";
+              widget = {
+                type = "sonarr";
+                url = "http://localhost:8989";
+                enableBlocks = true;
+                showEpisodeNumber = true;
+              };
+            };
+          }
+          {
+            Prowlarr = {
+              icon = "prowlarr";
+              href = "http://ops:9696";
+              description = "Trackers";
+              widget = {
+                type = "prowlarr";
+                url = "http://localhost:9696";
+              };
+            };
+          }
+        ];
+      }
+    ];
   };
 
   system.stateVersion = "23.11";

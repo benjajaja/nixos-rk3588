@@ -63,29 +63,7 @@
         # U-Boot configuration using sd-image
         boardModule.sd-image;
 
-    matrixFiles = [
-      "doublepuppet.yaml"
-      "homeserver.yaml"
-      "qdice.wtf.log.config"
-      "qdice.wtf.signing.key"
-      "mautrix-telegram-config.yaml"
-      "mautrix-whatsapp-config.yaml"
-      "registration.yaml"
-      "mautrix-telegram-registration.yaml"
-      "mautrix-whatsapp-registration.yaml"
-    ];
     matrixPath = builtins.getEnv "PWD" + "/matrix"; # this is intentional: https://colmena.cli.rs/unstable/features/keys.html#flakes
-    matrixKeys = builtins.listToAttrs (map (filename: {
-        name = filename;
-        value = {
-          keyFile = "${matrixPath}/${filename}";
-          destDir = "/run/matrix-config";
-          # user = "matrix-synapse";
-          # group = "matrix-synapse";
-          permissions = "0600";
-        };
-      })
-      matrixFiles);
   in {
     colmena = {
       meta = {
@@ -130,7 +108,43 @@
           ./hardware-configuration.nix
         ];
 
-        deployment.keys = matrixKeys;
+        deployment.keys = {
+          "homeserver.yaml" = {
+            keyFile = "${matrixPath}/homeserver.yaml";
+            destDir = "/run/matrix-config";
+            user = "matrix-synapse";
+            group = "matrix-synapse";
+            permissions = "0600";
+          };
+          "qdice.wtf.signing.key" = {
+            keyFile = "${matrixPath}/qdice.wtf.signing.key";
+            destDir = "/run/matrix-config";
+            user = "matrix-synapse";
+            group = "matrix-synapse";
+            permissions = "0600";
+          };
+          "doublepuppet.yaml" = {
+            keyFile = "${matrixPath}/doublepuppet.yaml";
+            destDir = "/run/matrix-config";
+            user = "matrix-synapse";
+            group = "matrix-synapse";
+            permissions = "0600";
+          };
+          "mautrix-telegram.env" = {
+            keyFile = "${matrixPath}/mautrix-telegram.env";
+            destDir = "/run/matrix-config";
+            user = "mautrix-telegram";
+            group = "mautrix-telegram";
+            permissions = "0600";
+          };
+          "mautrix-whatsapp.env" = {
+            keyFile = "${matrixPath}/mautrix-whatsapp.env";
+            destDir = "/run/matrix-config";
+            user = "mautrix-whatsapp";
+            group = "mautrix-whatsapp";
+            permissions = "0600";
+          };
+        };
       };
     };
     devShells.${localSystem}.default = let

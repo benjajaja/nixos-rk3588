@@ -7,6 +7,9 @@
   ...
 }: let
   domain = "qdice.wtf";
+
+  clientConfig."m.homeserver".base_url = "https://${domain}";
+  serverConfig."m.server" = "${domain}:443";
 in {
   # =========================================================================
   #      Base NixOS Configuration
@@ -163,6 +166,20 @@ in {
     51413 # transmission
   ];
 
+  programs = {
+    bash = {
+      shellAliases = {
+        nv = "nvim";
+      };
+      interactiveShellInit = ''
+        set -o vi
+        set show-mode-in-prompt on
+        set vi-cmd-mode-string "\1\e[2 q\2"
+        set vi-ins-mode-string "\1\e[6 q\2"
+      '';
+    };
+  };
+
   # Patch the units because they are not generated, yet no build error, probably due to nfsd and friends coming from the armbian kernel.
   systemd.services."nfs-mountd" = {
     description = "NFS Mount Daemon HACK!";
@@ -200,6 +217,7 @@ in {
       ExecStopPost = "${pkgs.runtimeShell} -c '${pkgs.nfs-utils}/bin/exportfs -au && ${pkgs.nfs-utils}/bin/exportfs -f'";
     };
     requires = ["nfs-mountd.service" "rpcbind.socket"];
+    wants = ["network-online.target"];
     after = ["network-online.target" "proc-fs-nfsd.mount" "nfs-mountd.service" "rpcbind.socket"];
   };
 
@@ -280,6 +298,26 @@ in {
 
   services.caddy = {
     enable = true;
+    virtualHosts."qdice.wtf" = {
+      extraConfig = ''
+        handle / {
+          respond 503
+        }
+        handle_path /.well-known/matrix/server {
+          header Content-Type application/json
+          header Access-Control-Allow-Origin *
+          respond `${builtins.toJSON serverConfig}` 200
+        }
+
+        handle_path /.well-known/matrix/client {
+          header Content-Type application/json
+          header Access-Control-Allow-Origin *
+          respond `${builtins.toJSON clientConfig}` 200
+        }
+
+        reverse_proxy 127.0.0.1:8008
+      '';
+    };
     virtualHosts."photos.qdice.wtf" = {
       extraConfig = ''
         reverse_proxy localhost:2283
@@ -325,20 +363,6 @@ in {
     };
   };
 
-  programs = {
-    bash = {
-      shellAliases = {
-        nv = "nvim";
-      };
-      interactiveShellInit = ''
-        set -o vi
-        set show-mode-in-prompt on
-        set vi-cmd-mode-string "\1\e[2 q\2"
-        set vi-ins-mode-string "\1\e[6 q\2"
-      '';
-    };
-  };
-
   services.opifancontrol = {
     enable = true;
     fans."cpu" = {
@@ -365,7 +389,7 @@ in {
   };
 
   services.matrix-synapse = {
-    enable = false;
+    enable = true;
     extras = [
       "oidc"
       "systemd"
@@ -378,7 +402,21 @@ in {
         name = "sqlite3";
         args.database = "/var/lib/matrix-synapse/homeserver.db";
       };
+      signing_key_path = "/run/matrix-config/qdice.wtf.signing.key";
+      app_service_config_files = [
+        "/run/matrix-config/doublepuppet.yaml"
+      ];
     };
+  };
+  services.mautrix-telegram = {
+    enable = true;
+    settings = import ./mautrix-telegram.nix;
+    environmentFile = "/run/matrix-config/mautrix-telegram.env";
+  };
+  services.mautrix-whatsapp = {
+    enable = true;
+    settings = import ./mautrix-whatsapp.nix;
+    environmentFile = "/run/matrix-config/mautrix-whatsapp.env";
   };
 
   services.glances = {
@@ -571,6 +609,10 @@ in {
       }
     ];
   };
+
+  nixpkgs.config.permittedInsecurePackages = [
+    "olm-3.2.16"
+  ];
 
   system.stateVersion = "23.11";
 }

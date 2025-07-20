@@ -154,9 +154,10 @@ in {
     2049 # nfs
     892 # mountd
     4000 # statd
-    80 # http / caddy
-    443
+    80 # http
+    443 #https
     51413 # transmission
+    1883 # mqtt
   ];
   networking.firewall.allowedUDPPorts = [
     111 # rpcbind
@@ -326,7 +327,7 @@ in {
     virtualHosts."ops.qdice.wtf" = {
       extraConfig = ''
         reverse_proxy localhost:19999
-        basicauth {
+        basic_auth {
           benjajaja $2a$14$4pZrY1ZOqTSVnAgtLfatYuTKoHCD7lXukoFNeC0ZFH833lNrM/W7S
         }
       '';
@@ -334,7 +335,7 @@ in {
     virtualHosts."glances.qdice.wtf" = {
       extraConfig = ''
         reverse_proxy localhost:61208
-        basicauth {
+        basic_auth {
           benjajaja $2a$14$4pZrY1ZOqTSVnAgtLfatYuTKoHCD7lXukoFNeC0ZFH833lNrM/W7S
         }
       '';
@@ -342,7 +343,7 @@ in {
     virtualHosts."kuma.qdice.wtf" = {
       extraConfig = ''
         reverse_proxy localhost:3001
-        basicauth {
+        basic_auth {
           benjajaja $2a$14$4pZrY1ZOqTSVnAgtLfatYuTKoHCD7lXukoFNeC0ZFH833lNrM/W7S
         }
       '';
@@ -350,9 +351,14 @@ in {
     virtualHosts."home.qdice.wtf" = {
       extraConfig = ''
         reverse_proxy localhost:8082
-        basicauth {
+        basic_auth {
           benjajaja $2a$14$4pZrY1ZOqTSVnAgtLfatYuTKoHCD7lXukoFNeC0ZFH833lNrM/W7S
         }
+      '';
+    };
+    virtualHosts."ha.qdice.wtf" = {
+      extraConfig = ''
+        reverse_proxy localhost:8123
       '';
     };
     virtualHosts."lz.qdice.wtf" = {
@@ -417,6 +423,57 @@ in {
     enable = true;
     settings = import ./mautrix-whatsapp.nix;
     environmentFile = "/run/matrix-config/mautrix-whatsapp.env";
+  };
+
+  services.home-assistant = {
+    enable = true;
+    openFirewall = true;
+    config = {
+      homeassistant = {
+        name = "Home";
+        # latitude = "!secret latitude";
+        # longitude = "!secret longitude";
+        # elevation = "!secret elevation";
+        unit_system = "metric";
+        time_zone = "UTC";
+      };
+      frontend = {
+        themes = "!include_dir_merge_named themes";
+      };
+      http = {
+        use_x_forwarded_for = true;
+        trusted_proxies = [
+          "127.0.0.1"
+          "::1"
+        ];
+      };
+      mobile_app = {};
+      recorder = {
+        db_url = "sqlite:////var/lib/hass/home-assistant_v2.db";
+      };
+      history = {};
+    };
+    package = pkgs.home-assistant.override {
+      extraPackages = ps:
+        with ps; [
+          paho-mqtt
+          gtts
+          roombapy
+          python-kasa
+          aemet-opendata
+        ];
+    };
+  };
+  services.mosquitto = {
+    enable = true;
+    listeners = [
+      {
+        port = 1883;
+        acl = ["pattern readwrite #"];
+        omitPasswordAuth = true;
+        settings.allow_anonymous = true;
+      }
+    ];
   };
 
   services.glances = {
@@ -548,6 +605,24 @@ in {
               widget = {
                 type = "caddy";
                 url = "http://localhost:2019";
+              };
+            };
+          }
+          {
+            HomeAssistant = {
+              icon = "home-assistant";
+              description = "Home Assistant";
+              href = "https://ha.${domain}";
+              widget = {
+                type = "homeassistant";
+                url = "http://localhost:8123";
+                key = builtins.getEnv "HASS_KEY";
+                custom = [
+                  {
+                    state = "sensor.esp32_temperature";
+                    label = "ESP32 Temperature";
+                  }
+                ];
               };
             };
           }

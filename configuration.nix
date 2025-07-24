@@ -72,6 +72,7 @@ in {
     opifan.packages.${pkgs.system}.wiringOP
     opifan.packages.${pkgs.system}.opifancontrol
     ncdu
+    fastfetch
 
     # servers
     nfs-utils

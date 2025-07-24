@@ -33,11 +33,11 @@
     # Whether or not to receive ephemeral events via appservice transactions.
     # Requires MSC2409 support (i.e. Synapse 1.22+).
     # You should disable bridge -> sync_with_custom_puppets when this is enabled.
-    ephemeral_events = false;
+    ephemeral_events = true;
   };
 
   bridge = {
-    sync_with_custom_puppets = true;
+    sync_with_custom_puppets = false;
     sync_read_receipts = true;
     delivery_receipts = true;
     login_shared_secret_map = {

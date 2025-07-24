@@ -27,15 +27,14 @@
     # Whether or not to receive ephemeral events via appservice transactions.
     # Requires MSC2409 support (i.e. Synapse 1.22+).
     # You should disable bridge -> sync_with_custom_puppets when this is enabled.
-    ephemeral_events = false;
+    ephemeral_events = true;
   };
 
   # Bridge config
   bridge = {
-    sync_with_custom_puppets = true;
-    # Should the bridge send a read receipt from the bridge bot when a message has been sent to WhatsApp?
+    sync_with_custom_puppets = false;
+    sync_read_receipts = true;
     delivery_receipts = true;
-    # Whether the bridge should send the message status as a custom com.beeper.message_send_status event.
     message_status_events = false;
     # Whether the bridge should send error notices via m.notice events when a message fails to bridge.
     message_error_notices = true;

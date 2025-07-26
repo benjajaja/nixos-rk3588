@@ -89,9 +89,6 @@ in {
 
   virtualisation.docker = {
     enable = false;
-    # start dockerd on boot.
-    # This is required for containers which are created with the `--restart=always` flag to work.
-    enableOnBoot = false;
   };
 
   services.openssh = {
@@ -272,10 +269,6 @@ in {
     extraGroups = ["users"]; # let it write (move files) to /srv/media
   };
 
-  services.flaresolverr = {
-    enable = false;
-    openFirewall = true;
-  };
   services.sonarr = {
     enable = true;
     openFirewall = true;
@@ -325,47 +318,9 @@ in {
         reverse_proxy localhost:2283
       '';
     };
-    virtualHosts."ops.qdice.wtf" = {
-      extraConfig = ''
-        reverse_proxy localhost:19999
-        basic_auth {
-          benjajaja $2a$14$4pZrY1ZOqTSVnAgtLfatYuTKoHCD7lXukoFNeC0ZFH833lNrM/W7S
-        }
-      '';
-    };
-    virtualHosts."glances.qdice.wtf" = {
-      extraConfig = ''
-        reverse_proxy localhost:61208
-        basic_auth {
-          benjajaja $2a$14$4pZrY1ZOqTSVnAgtLfatYuTKoHCD7lXukoFNeC0ZFH833lNrM/W7S
-        }
-      '';
-    };
-    virtualHosts."kuma.qdice.wtf" = {
-      extraConfig = ''
-        reverse_proxy localhost:3001
-        basic_auth {
-          benjajaja $2a$14$4pZrY1ZOqTSVnAgtLfatYuTKoHCD7lXukoFNeC0ZFH833lNrM/W7S
-        }
-      '';
-    };
-    virtualHosts."home.qdice.wtf" = {
-      extraConfig = ''
-        reverse_proxy localhost:8082
-        basic_auth {
-          benjajaja $2a$14$4pZrY1ZOqTSVnAgtLfatYuTKoHCD7lXukoFNeC0ZFH833lNrM/W7S
-        }
-      '';
-    };
     virtualHosts."ha.qdice.wtf" = {
       extraConfig = ''
         reverse_proxy localhost:8123
-      '';
-    };
-    virtualHosts."lz.qdice.wtf" = {
-      extraConfig = ''
-        root * /srv/www
-        file_server
       '';
     };
   };
@@ -462,6 +417,7 @@ in {
           roombapy
           python-kasa
           aemet-opendata
+          glances-api
         ];
     };
   };

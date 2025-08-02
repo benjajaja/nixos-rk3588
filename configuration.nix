@@ -156,6 +156,7 @@ in {
     443 #https
     51413 # transmission
     1883 # mqtt
+    8020 # zigbee
   ];
   networking.firewall.allowedUDPPorts = [
     111 # rpcbind
@@ -323,6 +324,19 @@ in {
         reverse_proxy localhost:8123
       '';
     };
+
+    virtualHosts."ops" = {
+      extraConfig = ''
+        tls internal
+        reverse_proxy localhost:8082
+      '';
+    };
+    virtualHosts."kuma.ops" = {
+      extraConfig = ''
+        tls internal
+        reverse_proxy localhost:3001
+      '';
+    };
   };
 
   services.opifancontrol = {
@@ -407,6 +421,7 @@ in {
       recorder = {
         db_url = "sqlite:////var/lib/hass/home-assistant_v2.db";
       };
+      automation = "!include automations.yaml";
       history = {};
     };
     package = pkgs.home-assistant.override {
@@ -433,6 +448,36 @@ in {
     ];
   };
 
+  services.zigbee2mqtt = {
+    enable = true;
+    settings = {
+      homeassistant = true;  # Enable HA integration
+      permit_join = false;
+      mqtt = {
+        server = "mqtt://localhost:1883";
+      };
+      serial = {
+        port = "/dev/ttyACM0";
+        adapter = "zstack";
+      };
+      frontend = {
+        port = 8020;
+      };
+      advanced = {
+        log_level = "debug";
+        channel = 15; # router uses 11 and 44, AP uses 1
+      };
+    };
+  };
+  # Add systemd service overrides, e.g. re-plugging dongle
+  systemd.services.zigbee2mqtt = {
+    serviceConfig = {
+      Restart = lib.mkForce "always";
+      RestartSec = lib.mkForce "5s";
+    };
+  };
+  users.users.zigbee2mqtt.extraGroups = [ "dialout" ];
+
   services.glances = {
     enable = true;
     openFirewall = true;
@@ -447,7 +492,7 @@ in {
   services.homepage-dashboard = {
     enable = true;
     openFirewall = true;
-    allowedHosts = "home.qdice.wtf,ops:8082";
+    allowedHosts = "ops,ops.lan,ops:8082";
     widgets = [
       {
         openmeteo = {
@@ -487,7 +532,7 @@ in {
           {
             "CPU" = {
               icon = "glances";
-              href = "https://glances.${domain}";
+              href = "http://ops:61208";
               widget = {
                 type = "glances";
                 url = "http://localhost:61208";
@@ -529,7 +574,7 @@ in {
           {
             "Uptime Kuma" = {
               icon = "uptime-kuma";
-              href = "https://kuma.${domain}";
+              href = "http://kuma.ops";
               description = "Uptime monitor";
               widget = {
                 type = "uptimekuma";
@@ -576,8 +621,8 @@ in {
                 key = builtins.getEnv "HASS_KEY";
                 custom = [
                   {
-                    state = "sensor.esp32_temperature";
-                    label = "ESP32 Temperature";
+                    state = "sensor.esp32ps5_temperature";
+                    label = "PS5 Temperature";
                   }
                 ];
               };

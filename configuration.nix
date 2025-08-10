@@ -189,46 +189,6 @@ in {
     };
   };
 
-  # Patch the units because they are not generated, yet no build error, probably due to nfsd and friends coming from the armbian kernel.
-  systemd.services."nfs-mountd" = {
-    description = "NFS Mount Daemon HACK!";
-    requires = ["proc-fs-nfsd.mount"];
-    wants = ["network-online.target"];
-    after = [
-      "proc-fs-nfsd.mount"
-      "network-online.target"
-      "local-fs.target"
-      "rpcbind.socket"
-    ];
-    bindsTo = ["nfs-server.service"];
-    serviceConfig = {
-      Type = "forking";
-      ExecStart = "${pkgs.nfs-utils}/bin/rpc.mountd --port 892";
-
-      Environment = [
-        "LOCALE_ARCHIVE=${pkgs.glibcLocales}/lib/locale/locale-archive"
-        "PATH=${pkgs.coreutils}/bin:${pkgs.findutils}/bin:${pkgs.gnugrep}/bin"
-        "TZDIR=${pkgs.tzdata}/share/zoneinfo"
-      ];
-    };
-    wantedBy = ["multi-user.target"];
-  };
-  systemd.services.nfs-server = {
-    description = "NFS server and services HACK! for armbian kernel with nixos";
-    wantedBy = ["multi-user.target"];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStartPre = "${pkgs.nfs-utils}/bin/exportfs -r";
-      ExecStart = "${pkgs.nfs-utils}/bin/rpc.nfsd";
-      ExecStop = "${pkgs.nfs-utils}/bin/rpc.nfsd 0";
-      ExecStopPost = "${pkgs.runtimeShell} -c '${pkgs.nfs-utils}/bin/exportfs -au && ${pkgs.nfs-utils}/bin/exportfs -f'";
-    };
-    requires = ["nfs-mountd.service" "rpcbind.socket"];
-    wants = ["network-online.target"];
-    after = ["network-online.target" "proc-fs-nfsd.mount" "nfs-mountd.service" "rpcbind.socket"];
-  };
-
   systemd.services.led-control = {
     description = "Orange Pi 5 LED gimmick";
     wantedBy = [ "multi-user.target" ];
@@ -379,6 +339,7 @@ in {
       "oidc"
       "systemd"
       "url-preview"
+      # "cache-memory", "jwt", "oidc", "postgres", "redis", "saml2", "sentry", "systemd", "url-preview"
       # "user-search"
     ];
     extraConfigFiles = ["/run/matrix-config/homeserver.yaml"];

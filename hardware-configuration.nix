@@ -52,12 +52,7 @@
     "hantro_vpu"
     # Performance monitoring
     "rockchip_dfi"
-    # "nfsd"
   ];
-  # fileSystems."/proc/fs/nfsd" = {
-    # fsType = "nfsd";
-    # device = "nfsd";
-  # };
 
   # Enable firmware loading
   hardware.enableRedistributableFirmware = true;

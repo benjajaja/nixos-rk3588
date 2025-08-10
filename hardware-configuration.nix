@@ -14,6 +14,7 @@
 
   boot.initrd.availableKernelModules = ["nvme"];
   boot.initrd.kernelModules = [];
+  boot.blacklistedKernelModules = [ "dvb_usb_rtl28xxu" "rtl2832" "rtl2830" ]; # radio
   boot.kernelModules = ["nfsd"];
   fileSystems."/proc/fs/nfsd" = {
     fsType = "nfsd";
@@ -36,6 +37,11 @@
     device = "/dev/disk/by-uuid/722C54791642E0EB";
     fsType = "ntfs";
     options = ["nofail"];
+  };
+  fileSystems."/srv/sdd" = {
+    device = "/mnt/backup";
+    fsType = "none";
+    options = [ "bind" "nofail" ];
   };
 
   # We're running on an NVMe.

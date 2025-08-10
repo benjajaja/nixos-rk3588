@@ -78,6 +78,12 @@ in {
     nfs-utils
     ntfs3g
 
+    # Radio
+    dump1090
+    rtl-sdr
+    rtl-ais
+    rtl_433
+
     # stop annoying $TERM complaints
     kitty.terminfo
   ];
@@ -112,6 +118,8 @@ in {
       "d /srv/media/TV\ Shows 0777 root users - -"
       "d /srv/media/torrents/radarr 0777 transmission users - -"
       "d /srv/media/torrents/sonarr 0777 transmission users - -"
+      # "L+ /srv/sdd - - - - /mnt/backup" # stupid kodi only sees the root
+
       # immich - this might be because of an initial mismatch between db and fs.
       "d /srv/photos 0777 immich immich - -"
       "d /srv/photos/encoded-video 0777 immich immich - -"
@@ -126,11 +134,6 @@ in {
       "f /srv/photos/thumbs/.immich 0777 immich immich - -"
       "d /srv/photos/backups 0777 immich immich - -"
       "f /srv/photos/backups/.immich 0777 immich immich - -"
-      # matrix
-      # "d /var/lib/matrix-synapse 0750 matrix-synapse matrix-synapse -"
-      # "d /var/lib/matrix-synapse/media 0750 matrix-synapse matrix-synapse -"
-      # "d /var/lib/mautrix-telegram 0750 mautrix-telegram mautrix-telegram -"
-      # "d /var/lib/mautrix-whatsapp 0750 mautrix-whatsapp mautrix-whatsapp -"
     ]
   ];
 
@@ -144,7 +147,7 @@ in {
       /srv/media   192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash,insecure)
       /srv/backup  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash,insecure)
       /srv/photos  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash,insecure)
-      /mnt/backup  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash,insecure)
+      /srv/sdd     192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash,insecure)
     '';
   };
   networking.firewall.allowedTCPPorts = [
@@ -157,6 +160,7 @@ in {
     51413 # transmission
     1883 # mqtt
     8020 # zigbee
+    8080 # RTL stuff
   ];
   networking.firewall.allowedUDPPorts = [
     111 # rpcbind
@@ -276,7 +280,7 @@ in {
     settings.auth.apikey = builtins.getEnv "SONARR_KEY";
   };
   users.users.sonarr = {
-    extraGroups = ["users"];
+    extraGroups = ["users" "transmission"];
   };
   services.radarr = {
     enable = true;
@@ -284,7 +288,7 @@ in {
     settings.auth.apikey = builtins.getEnv "RADARR_KEY";
   };
   users.users.radarr = {
-    extraGroups = ["users"];
+    extraGroups = ["users" "transmission"];
   };
   services.prowlarr = {
     enable = true;
@@ -433,6 +437,8 @@ in {
           python-kasa
           aemet-opendata
           glances-api
+          transmission-rpc
+          aiopyarr
         ];
     };
   };
@@ -457,7 +463,8 @@ in {
         server = "mqtt://localhost:1883";
       };
       serial = {
-        port = "/dev/ttyACM0";
+        # port = "/dev/ttyACM0";
+        port = "tcp://orangepipc:8888";
         adapter = "zstack";
       };
       frontend = {
@@ -467,10 +474,23 @@ in {
         log_level = "debug";
         channel = 15; # router uses 11 and 44, AP uses 1
       };
+      devices = {
+        "0xfc4d6afffe4e5dab" = {
+          friendly_name = "Switch Bedroom Benja";
+        };
+        "0xfc4d6afffecbf7f3" = {
+          friendly_name = "Switch Living Room";
+        };
+        "0x6cfd22fffe6c058b" = {
+          friendly_name = "LED Strip Benja";
+        };
+        "0xfc4d6afffecbfa28" = {
+          friendly_name = "Switch Bedroom Laia";
+        };
+      };
     };
   };
-  # Add systemd service overrides, e.g. re-plugging dongle
-  systemd.services.zigbee2mqtt = {
+  systemd.services.zigbee2mqtt = { # Add systemd service overrides, e.g. re-plugging dongle
     serviceConfig = {
       Restart = lib.mkForce "always";
       RestartSec = lib.mkForce "5s";
@@ -689,6 +709,10 @@ in {
 
   nixpkgs.config.permittedInsecurePackages = [
     "olm-3.2.16"
+  ];
+
+  services.udev.packages = with pkgs; [
+    rtl-sdr
   ];
 
   system.stateVersion = "23.11";

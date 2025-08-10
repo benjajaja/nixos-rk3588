@@ -379,7 +379,7 @@ in {
       "oidc"
       "systemd"
       "url-preview"
-      "user-search"
+      # "user-search"
     ];
     extraConfigFiles = ["/run/matrix-config/homeserver.yaml"];
     settings = {

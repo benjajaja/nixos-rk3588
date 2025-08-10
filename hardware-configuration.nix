@@ -13,16 +13,60 @@
   ];
 
   boot.kernelPackages = lib.mkForce pkgs.linuxPackages_latest;
-  boot.initrd.availableKernelModules = ["nvme"];
+  # Orange Pi 5 Plus hardware support
+  boot.initrd.availableKernelModules = [
+    # Storage - NVMe for boot drive
+    "nvme"
+    # USB storage support
+    "uas" 
+    "usb_storage"
+    "usbhid"
+    # Rockchip-specific storage
+    "dw_mmc_rockchip"
+    "spi_rockchip_sfc"
+    # Essential for boot
+    "rockchip_saradc"
+    "rockchip_thermal"
+  ];
+
+  boot.kernelModules = [
+    # Core Rockchip modules
+    "rockchip_saradc"
+    "rockchip_thermal"
+    "rockchip_rga"
+    # Graphics and display
+    "rockchipdrm"
+    "panthor"
+    "dw_hdmi"
+    "dw_hdmi_qp"
+    "analogix_dp"
+    "dw_mipi_dsi"
+    # USB and PHY
+    "phy_rockchip_usbdp"
+    "phy_rockchip_naneng_combphy"
+    "phy_rockchip_samsung_hdptx"
+    # Audio
+    "snd_soc_rockchip_i2s"
+    "snd_soc_rockchip_i2s_tdm"
+    # Video processing
+    "hantro_vpu"
+    # Performance monitoring
+    "rockchip_dfi"
+    # "nfsd"
+  ];
+  # fileSystems."/proc/fs/nfsd" = {
+    # fsType = "nfsd";
+    # device = "nfsd";
+  # };
+
+  # Enable firmware loading
+  hardware.enableRedistributableFirmware = true;
   boot.initrd.kernelModules = [];
   boot.initrd.compressor = "zstd"; # /boot was too smol
+  boot.initrd.compressorArgs = [ "-19" "-T0" ];
+  boot.initrd.includeDefaultModules = false;  # Important!
   boot.blacklistedKernelModules = [ "dvb_usb_rtl28xxu" "rtl2832" "rtl2830" ]; # radio
-  boot.kernelModules = ["nfsd"];
   boot.kernelParams = [ "iomem=relaxed" ]; # wiringOP / gpio permission fix.
-  fileSystems."/proc/fs/nfsd" = {
-    fsType = "nfsd";
-    device = "nfsd";
-  };
   boot.extraModulePackages = [];
 
   boot.loader.systemd-boot.configurationLimit = 5;

@@ -2,26 +2,16 @@
   description = "NixOS configuration for rk3588 remote deployment with UEFI and U-Boot options";
 
   inputs = {
-    # Use the local flake for testing or remote flake for production.
-    # TODO: because this is a relative path input you will need to update the flake.lock file locally with `nix flake update nixos-rk3588`
-    # nixos-rk3588.url = "path:.."; # For local testing
-    # nixos-rk3588.url = "path:/home/gipsy/o/orange/nixos-rk3588";
-    nixos-rk3588.url = "github:benjajaja/nixos-rk3588?ref=stable"; # That branch/fork just switches to stable, for immich.
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     opifan.url = "github:benjajaja/opifancontrol?ref=main";
   };
 
   outputs = {
-    nixos-rk3588,
+    nixpkgs,
     opifan,
     ...
   }: let
-    inherit (nixos-rk3588.inputs) nixpkgs;
-    inherit opifan;
-    # TODO: choose your rk3588 SBC model
-    boardModule = nixos-rk3588.nixosModules.boards.orangepi5plus;
-
-    # Define system architecture and different compilation options.
-    bootType = "uefi"; # Change to "u-boot" for U-Boot
+    inherit nixpkgs opifan;
 
     # Possible values for compilationType: "local-native", "remote-native", or "cross".
     compilationType = "remote-native"; # Choose the compilation type here.
@@ -41,27 +31,21 @@
         # For both local-native & remote-native compilation
         import nixpkgs {system = targetSystem;};
 
-    # Define bootloader based on bootType (UEFI or U-Boot)
-    bootloaderModule =
-      if bootType == "uefi"
-      then {
-        # grub bootloader configured for UEFI
-        boot = {
-          growPartition = true; # If partition resizing is necessary
-          kernelParams = ["console=ttyS0"]; # If you need serial console access
-          # loader.timeout = lib.mkDefault 0;  # Optional, to skip GRUB menu
-          initrd.availableKernelModules = ["uas"]; # If specific kernel modules are required
-          loader.grub = {
-            enable = true;
-            device = "nodev";
-            efiSupport = true;
-            efiInstallAsRemovable = true;
-          };
+    # TODO: just move to hardware-configuration or configuration
+    bootloaderModule = {
+      boot = { # grub bootloader configured for UEFI
+        growPartition = true; # If partition resizing is necessary
+        kernelParams = ["console=ttyS0"]; # If you need serial console access
+        # loader.timeout = lib.mkDefault 0;  # Optional, to skip GRUB menu
+        initrd.availableKernelModules = ["uas"]; # If specific kernel modules are required
+        loader.grub = {
+          enable = true;
+          device = "nodev";
+          efiSupport = true;
+          efiInstallAsRemovable = true;
         };
-      }
-      else
-        # U-Boot configuration using sd-image
-        boardModule.sd-image;
+      };
+    };
 
     matrixPath = builtins.getEnv "PWD" + "/matrix"; # this is intentional: https://colmena.cli.rs/unstable/features/keys.html#flakes
   in {
@@ -69,9 +53,6 @@
       meta = {
         nixpkgs = import nixpkgs {system = localSystem;};
         specialArgs = {
-          rk3588 = {
-            inherit nixpkgs pkgsKernel;
-          };
           inherit nixpkgs opifan;
         };
       };
@@ -93,9 +74,6 @@
         deployment.allowLocalDeployment = compilationType == "local-native";
 
         imports = [
-          # import the rk3588 module, which contains the configuration for bootloader/kernel/firmware
-          boardModule.core
-
           # Import the correct bootloader based on the selected bootType.
           bootloaderModule
 

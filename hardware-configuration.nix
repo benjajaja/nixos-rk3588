@@ -12,15 +12,21 @@
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
+  boot.kernelPackages = lib.mkForce pkgs.linuxPackages_latest;
   boot.initrd.availableKernelModules = ["nvme"];
   boot.initrd.kernelModules = [];
+  boot.initrd.compressor = "zstd"; # /boot was too smol
   boot.blacklistedKernelModules = [ "dvb_usb_rtl28xxu" "rtl2832" "rtl2830" ]; # radio
   boot.kernelModules = ["nfsd"];
+  boot.kernelParams = [ "iomem=relaxed" ]; # wiringOP / gpio permission fix.
   fileSystems."/proc/fs/nfsd" = {
     fsType = "nfsd";
     device = "nfsd";
   };
   boot.extraModulePackages = [];
+
+  boot.loader.systemd-boot.configurationLimit = 5;
+  boot.loader.grub.configurationLimit = 5;
 
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/f222513b-ded1-49fa-b591-20ce86a2fe7f";

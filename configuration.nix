@@ -30,6 +30,11 @@ in {
     # enable flakes globally
     experimental-features = ["nix-command" "flakes"];
   };
+  nix.gc = {
+    automatic = true;
+    dates = "daily";
+    options = "--delete-older-than 7d";
+  };
 
   # make `nix run nixpkgs#nixpkgs` use the same nixpkgs as the one used by this flake.
   nix.registry.nixpkgs.flake = nixpkgs;
@@ -217,7 +222,6 @@ in {
       ExecStartPre = "${pkgs.nfs-utils}/bin/exportfs -r";
       ExecStart = "${pkgs.nfs-utils}/bin/rpc.nfsd";
       ExecStop = "${pkgs.nfs-utils}/bin/rpc.nfsd 0";
-      # ExecStopPost = "\"${pkgs.nfs-utils}/bin/exportfs -au && ${pkgs.nfs-utils}/bin/exportfs -f\"";
       ExecStopPost = "${pkgs.runtimeShell} -c '${pkgs.nfs-utils}/bin/exportfs -au && ${pkgs.nfs-utils}/bin/exportfs -f'";
     };
     requires = ["nfs-mountd.service" "rpcbind.socket"];
@@ -227,16 +231,17 @@ in {
 
   systemd.services.led-control = {
     description = "Orange Pi 5 LED gimmick";
-    wantedBy = ["multi-user.target"];
-    after = ["multi-user.target"];
+    wantedBy = [ "multi-user.target" ];
+    after = [ "sshd.service" ];
+    wants = [ "sshd.service" ];
 
     serviceConfig = {
       Type = "oneshot";
       ExecStart = "${pkgs.bash}/bin/bash ${pkgs.writeShellScript "disable-blue-enable-green-led" ''
-        echo none > /sys/class/leds/blue_led/trigger
-        echo 0 > /sys/class/leds/blue_led/brightness
+        echo none > /sys/class/leds/blue:indicator-1/trigger
+        echo 0 > /sys/class/leds/blue:indicator-1/brightness
 
-        echo default-on > /sys/class/leds/green_led/trigger
+        echo default-on > /sys/class/leds/green:indicator-2/trigger
       ''}";
       RemainAfterExit = true;
     };

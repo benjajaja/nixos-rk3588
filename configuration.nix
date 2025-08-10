@@ -192,8 +192,8 @@ in {
   systemd.services.led-control = {
     description = "Orange Pi 5 LED gimmick";
     wantedBy = [ "multi-user.target" ];
-    after = [ "sshd.service" ];
-    wants = [ "sshd.service" ];
+    after = [ "network-online.target" "sshd.service" ];
+    wants = [ "network-online.target" "sshd.service" ];
 
     serviceConfig = {
       Type = "oneshot";

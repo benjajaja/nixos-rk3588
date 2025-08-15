@@ -125,6 +125,9 @@ in {
       "d /srv/media/torrents/sonarr 0777 transmission users - -"
       # "L+ /srv/sdd - - - - /mnt/backup" # stupid kodi only sees the root
 
+      # matrix secrets
+      "d /var/lib/matrix-synapse/secrets 0700 matrix-synapse matrix-synapse -"
+
       # immich - this might be because of an initial mismatch between db and fs.
       "d /srv/photos 0777 immich immich - -"
       "d /srv/photos/encoded-video 0777 immich immich - -"
@@ -444,14 +447,14 @@ in {
         "0xfc4d6afffe4e5dab" = {
           friendly_name = "Switch Bedroom Benja";
         };
-        "0xfc4d6afffecbf7f3" = {
-          friendly_name = "Switch Living Room";
-        };
         "0x6cfd22fffe6c058b" = {
           friendly_name = "LED Strip Benja";
         };
         "0xfc4d6afffecbfa28" = {
           friendly_name = "Switch Bedroom Laia";
+        };
+        "0xfc4d6afffecbf7f3" = {
+          friendly_name = "Switch Bedroom Laia Fan";
         };
       };
     };

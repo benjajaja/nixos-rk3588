@@ -119,11 +119,8 @@ in {
       "d /srv/backup 0777 root users - -"
       "d /srv/media 0777 root users - -"
       "d /srv/media/torrents 0777 transmission users - -"
-      "d /srv/media/Movies 0777 root users - -"
-      "d /srv/media/TV\ Shows 0777 root users - -"
       "d /srv/media/torrents/radarr 0777 transmission users - -"
       "d /srv/media/torrents/sonarr 0777 transmission users - -"
-      # "L+ /srv/sdd - - - - /mnt/backup" # stupid kodi only sees the root
 
       # matrix secrets
       "d /var/lib/matrix-synapse/secrets 0700 matrix-synapse matrix-synapse -"
@@ -148,7 +145,7 @@ in {
   services.rpcbind.enable = true;
   services.nfs.server = {
     enable = true;
-    mountdPort = 892; # ignored, but forced again in systemd.services.nfs-mountd
+    mountdPort = 892;
     statdPort = 4000;
     exports = ''
       /srv         192.168.8.0/24(rw,fsid=0,no_subtree_check,no_root_squash,insecure)
@@ -158,6 +155,63 @@ in {
       /srv/sdd     192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash,insecure)
     '';
   };
+
+  systemd.services.backup-sync = {
+    description = "Sync Pictures and Documents to backup disk";
+    conflicts = [ "matrix-synapse.service" ]; # Stop matrix on start.
+    script = ''
+      set -euo pipefail  # Exit on error, undefined variables, and pipe failures
+      
+      echo "Starting backup sync at $(date)"
+      
+      # For photos
+      echo "Backing up photos (quiet)..."
+      ${pkgs.rsync}/bin/rsync -a --delete /srv/photos/ /srv/sdd/backup/immich/photos/
+      
+      # For Matrix Synapse - safely backup the SQLite database
+      echo "Backing up Matrix Synapse database..."
+      ${pkgs.sqlite}/bin/sqlite3 /var/lib/matrix-synapse/homeserver.db ".backup /tmp/homeserver_backup.db"
+      ${pkgs.rsync}/bin/rsync -av --delete /tmp/homeserver_backup.db /srv/sdd/backup/matrix/
+      rm /tmp/homeserver_backup.db
+      
+      # Backup other Matrix files
+      echo "Backing up Matrix Synapse secrets..."
+      ${pkgs.rsync}/bin/rsync -av --delete /var/lib/matrix-synapse/secrets /srv/sdd/backup/matrix/secrets/
+      
+      echo "Backing up Matrix Synapse media (quiet)..."
+      ${pkgs.rsync}/bin/rsync -a --delete /var/lib/matrix-synapse/media /srv/sdd/backup/matrix/media/
+      
+      echo "Backing up Matrix Synapse media_store (quiet)..."
+      ${pkgs.rsync}/bin/rsync -a --delete /var/lib/matrix-synapse/media_store /srv/sdd/backup/matrix/media_store/
+      
+      echo "Backup sync completed successfully at $(date)"
+    '';
+    serviceConfig = {
+      Type = "oneshot";
+      User = "root";  # Needed for Matrix Synapse files
+      Nice = 19;  # Low priority
+      IOSchedulingClass = "idle";  # Low I/O priority
+      StandardOutput = "journal";
+      StandardError = "journal";
+    };
+    # Ensure matrix-synapse is started again after backup completes
+    # (whether successful or failed)
+    unitConfig = {
+      OnSuccess = "matrix-synapse.service";
+      OnFailure = "matrix-synapse.service";
+    };
+  };
+
+  systemd.timers.backup-sync = {
+    description = "Run backup sync daily";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "daily";
+      Persistent = true;  # Run if system was off during scheduled time
+      RandomizedDelaySec = "1h";  # Randomize start time to avoid load spikes
+    };
+  };
+
   networking.firewall.allowedTCPPorts = [
     111 # rpcbind
     2049 # nfs
@@ -345,27 +399,27 @@ in {
       # "cache-memory", "jwt", "oidc", "postgres", "redis", "saml2", "sentry", "systemd", "url-preview"
       # "user-search"
     ];
-    extraConfigFiles = ["/run/matrix-config/homeserver.yaml"];
+    extraConfigFiles = ["/var/lib/matrix-synapse/secrets/homeserver.yaml"];
     settings = {
       database = {
         name = "sqlite3";
         args.database = "/var/lib/matrix-synapse/homeserver.db";
       };
-      signing_key_path = "/run/matrix-config/qdice.wtf.signing.key";
+      signing_key_path = "/var/lib/matrix-synapse/secrets/qdice.wtf.signing.key";
       app_service_config_files = [
-        "/run/matrix-config/doublepuppet.yaml"
+        "/var/lib/matrix-synapse/secrets/doublepuppet.yaml"
       ];
     };
   };
   services.mautrix-telegram = {
     enable = true;
     settings = import ./mautrix-telegram.nix;
-    environmentFile = "/run/matrix-config/mautrix-telegram.env";
+    environmentFile = "/var/lib/matrix-synapse/secrets/mautrix-telegram.env";
   };
   services.mautrix-whatsapp = {
     enable = true;
     settings = import ./mautrix-whatsapp.nix;
-    environmentFile = "/run/matrix-config/mautrix-whatsapp.env";
+    environmentFile = "/var/lib/matrix-synapse/secrets/mautrix-whatsapp.env";
   };
 
   services.home-assistant = {
@@ -510,8 +564,8 @@ in {
       }
       {
         resources = {
-          label = "/mnt/backup";
-          disk = ["/mnt/backup"];
+          label = "/srv/sdd";
+          disk = ["/srv/sdd"];
         };
       }
     ];

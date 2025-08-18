@@ -78,15 +78,10 @@
     options = ["fmask=0022" "dmask=0022"];
   };
 
-  fileSystems."/mnt/backup" = {
+  fileSystems."/srv/sdd" = {
     device = "/dev/disk/by-uuid/722C54791642E0EB";
     fsType = "ntfs";
     options = ["nofail"];
-  };
-  fileSystems."/srv/sdd" = {
-    device = "/mnt/backup";
-    fsType = "none";
-    options = [ "bind" "nofail" ];
   };
 
   # We're running on an NVMe.

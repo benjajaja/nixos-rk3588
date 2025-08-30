@@ -78,8 +78,10 @@ in {
     opifan.packages.${pkgs.system}.opifancontrol
     ncdu
     fastfetch
+    sqlite
+    mailutils
 
-    # servers
+    # servers - is this still necessary?
     nfs-utils
     ntfs3g
 
@@ -477,50 +479,6 @@ in {
     ];
   };
 
-  services.zigbee2mqtt = {
-    enable = true;
-    settings = {
-      homeassistant = true;  # Enable HA integration
-      permit_join = false;
-      mqtt = {
-        server = "mqtt://localhost:1883";
-      };
-      serial = {
-        # port = "/dev/ttyACM0";
-        port = "tcp://orangepipc:8888";
-        adapter = "zstack";
-      };
-      frontend = {
-        port = 8020;
-      };
-      advanced = {
-        log_level = "debug";
-        channel = 15; # router uses 11 and 44, AP uses 1
-      };
-      devices = {
-        "0xfc4d6afffe4e5dab" = {
-          friendly_name = "Switch Bedroom Benja";
-        };
-        "0x6cfd22fffe6c058b" = {
-          friendly_name = "LED Strip Benja";
-        };
-        "0xfc4d6afffecbfa28" = {
-          friendly_name = "Switch Bedroom Laia";
-        };
-        "0xfc4d6afffecbf7f3" = {
-          friendly_name = "Switch Bedroom Laia Fan";
-        };
-      };
-    };
-  };
-  systemd.services.zigbee2mqtt = { # Add systemd service overrides, e.g. re-plugging dongle
-    serviceConfig = {
-      Restart = lib.mkForce "always";
-      RestartSec = lib.mkForce "5s";
-    };
-  };
-  users.users.zigbee2mqtt.extraGroups = [ "dialout" ];
-
   services.glances = {
     enable = true;
     openFirewall = true;
@@ -737,6 +695,45 @@ in {
   services.udev.packages = with pkgs; [
     rtl-sdr
   ];
+
+  services.postfix = {
+    enable = true;
+    setSendmail = true;
+    
+    config = {
+      # Listen only on localhost
+      inet_interfaces = "localhost";
+      inet_protocols = "ipv4";
+      
+      # Relay all mail directly to MailerSend (replaces msmtp)
+      relayhost = "[smtp.mailersend.net]:587";
+      
+      # SASL authentication for Postfix to authenticate TO MailerSend
+      smtp_sasl_auth_enable = true;
+      smtp_sasl_security_options = "noanonymous";
+      smtp_sasl_password_maps = "texthash:/var/keys/postfix-sasl-password";
+      smtp_tls_security_level = "encrypt";
+      smtp_tls_wrappermode = false;
+      
+      # Security: only accept mail from localhost, no auth required from clients
+      smtpd_relay_restrictions = [
+        "permit_mynetworks"
+        "reject_unauth_destination"
+      ];
+      mynetworks = "127.0.0.0/8";
+      
+      # Disable SMTP server authentication (clients don't need to auth to us)
+      smtpd_sasl_auth_enable = false;
+      
+      # Disable local delivery
+      mydestination = "";
+      local_recipient_maps = "";
+      local_transport = "error:local mail delivery is disabled";
+      
+      # Simple configuration
+      compatibility_level = "3.6";
+    };
+  };
 
   system.stateVersion = "23.11";
 }

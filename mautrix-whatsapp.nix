@@ -1,4 +1,14 @@
 {
+  network = {
+    # Displayname template for WhatsApp users.
+    # {{.PushName}}     - nickname set by the WhatsApp user
+    # {{.BusinessName}} - validated WhatsApp business name
+    # {{.Phone}}        - phone number (international format)
+    # {{.FullName}}     - Name you set in the contacts list
+    # displayname_template: "{{if .BusinessName}}{{.BusinessName}}{{else if .PushName}}{{.PushName}}{{else}}{{.JID}}{{end}} (WA)"
+    displayname_template = "{{if .BusinessName}}{{.BusinessName}}{{else if .PushName}}{{.PushName}}{{else if .FullName}}{{.FullName}}{{else}}{{.JID}}{{end}} (WA)";
+  };
+
   homeserver = {
     address = "http://localhost:8008";
     domain = "qdice.wtf";
@@ -32,6 +42,7 @@
 
   # Bridge config
   bridge = {
+    personal_filtering_spaces = false;
     sync_with_custom_puppets = false;
     sync_read_receipts = true;
     delivery_receipts = true;
@@ -40,6 +51,11 @@
     message_error_notices = true;
     # Should incoming calls send a message to the Matrix room?
     call_start_notices = true;
+    encryption = {
+      allow = true;
+      default = false;
+      require = false;
+    };
     history_sync = {
       # Enable backfilling history sync payloads from WhatsApp?
       backfill = false;
@@ -62,5 +78,11 @@
       "qdice.wtf" = "user";
       "@whatsappbot:qdice.wtf" = "admin";
     };
+    enable_status_broadcast = false;
+    relay.enabled = false;
+  };
+
+  matrix = {
+    federate_rooms = false;
   };
 }

@@ -37,11 +37,18 @@
   };
 
   bridge = {
-    sync_with_custom_puppets = false;
+    sync_with_custom_puppets = true;
     sync_read_receipts = true;
+    sync_direct_chat_list = true;
     delivery_receipts = true;
     login_shared_secret_map = {
       "qdice.wtf" = "$MAUTRIX_TELEGRAM_BRIDGE_LOGIN_SHARED_SECRET_MAP_QDICE";
+    };
+    double_puppet_allow_discovery = true;
+    encryption = {
+      allow = true;
+      default = false;
+      require = false;
     };
 
     # puppet_power_level = 50;
@@ -97,8 +104,11 @@
       "*" = "relaybot";
       "qdice.wtf" = "full";
       "@telegramos:qdice.wtf" = "admin";
-      # "@benjajaja:qdice.wtf" = "admin";
     };
+  };
+
+  matrix = {
+    federate_rooms = false;
   };
 
   telegram = {
@@ -108,5 +118,31 @@
     catch_up = true;
     sequential_updates = true;
     exit_on_update_error = false;
+  };
+  logging = {
+    version = 1;
+    formatters = {
+      normal = {
+        format = "[%(asctime)s] [%(levelname)s@%(name)s] %(message)s";
+      };
+    };
+    handlers = {
+      console = {
+        class = "logging.StreamHandler";
+        formatter = "normal";
+      };
+    };
+    loggers = {
+      mau = {
+        level = "DEBUG";
+      };
+      telethon = {
+        level = "DEBUG";
+      };
+    };
+    root = {
+      level = "DEBUG";
+      handlers = ["console"];
+    };
   };
 }

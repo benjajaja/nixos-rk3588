@@ -180,8 +180,8 @@ in {
       echo "Backing up Matrix Synapse secrets..."
       ${pkgs.rsync}/bin/rsync -av --delete /var/lib/matrix-synapse/secrets /srv/sdd/backup/matrix/secrets/
       
-      echo "Backing up Matrix Synapse media (quiet)..."
-      ${pkgs.rsync}/bin/rsync -a --delete /var/lib/matrix-synapse/media /srv/sdd/backup/matrix/media/
+      echo "Backing up Matrix Synapse media_store (quiet)..."
+      ${pkgs.rsync}/bin/rsync -a --delete /var/lib/matrix-synapse/media_store /srv/sdd/backup/matrix/media_store/
       
       echo "Backing up Matrix Synapse media_store (quiet)..."
       ${pkgs.rsync}/bin/rsync -a --delete /var/lib/matrix-synapse/media_store /srv/sdd/backup/matrix/media_store/

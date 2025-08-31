@@ -3,6 +3,10 @@
 Initially built with https://github.com/gnull/nixos-rk3588, now uses mainline NixOS kernel and
 everything else.
 
+Initially started with colmena secrets, now also uses sops.
+
+https://michael.stapelberg.ch/posts/2025-08-24-secret-management-with-sops-nix
+
 # Services & Features
 
 * [opifancontrol](https://github.com/jamsinclair/opifancontrol)
@@ -27,7 +31,7 @@ everything else.
 # Deploy via Colmena
 
 ```
-colmena apply --impure
+colmena apply
 ```
 
 Could probably also be done with something like `nixos-rebuild switch --flake .#ops`.
@@ -35,6 +39,5 @@ Could probably also be done with something like `nixos-rebuild switch --flake .#
 # TODO
 
 * Cloud backup
-* Use sops-nix: https://michael.stapelberg.ch/posts/2025-08-24-secret-management-with-sops-nix
 * Fix matrix bridges
     * Permission error on read receipts to matrix

@@ -4,14 +4,17 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     opifan.url = "github:benjajaja/opifancontrol?ref=main";
+    sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = {
     nixpkgs,
     opifan,
+    sops-nix,
     ...
   }: let
-    inherit nixpkgs opifan;
+    inherit nixpkgs opifan sops-nix;
 
     # Possible values for compilationType: "local-native", "remote-native", or "cross".
     compilationType = "remote-native"; # Choose the compilation type here.
@@ -76,8 +79,8 @@
         imports = [
           # Import the correct bootloader based on the selected bootType.
           bootloaderModule
-
           opifan.nixosModules.default
+          sops-nix.nixosModules.sops
 
           # Custom configuration
           ./configuration.nix
@@ -139,16 +142,11 @@
       pkgs.mkShell {
         buildInputs = with pkgs; [
           colmena
+          sops-nix.nixosModules.sops
+          sops
+          age
+          ssh-to-age
         ];
-
-        shellHook = ''
-          if [ -f .env ]; then
-            set -a
-            source .env
-            set +a
-            echo "Environment variables loaded from .env"
-          fi
-        '';
       };
   };
 }

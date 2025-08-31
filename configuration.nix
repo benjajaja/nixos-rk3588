@@ -16,6 +16,27 @@ in {
   # =========================================================================
   # nix run nixpkgs#colmena apply -- --impure
 
+  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+  sops.defaultSopsFile = ./secrets/api_keys.yaml;
+  sops.secrets.radarr_env = {
+    owner = "radarr";
+    group = "radarr";
+    mode = "0400";
+    restartUnits = [ "radarr.service" "home-assistant.service" ];
+  };
+  sops.secrets.sonarr_env = {
+    owner = "sonarr";
+    group = "sonarr";
+    mode = "0400";
+    restartUnits = [ "sonarr.service" "home-assistant.service" ];
+  };
+  sops.secrets.prowlarr_env = {
+    owner = "nobody";
+    group = "users";
+    mode = "0400";
+    restartUnits = [ "prowlarr.service" "home-assistant.service" ];
+  };
+
   # Set your time zone.
   time.timeZone = "Atlantic/Canary";
 
@@ -301,7 +322,7 @@ in {
   services.sonarr = {
     enable = true;
     openFirewall = true;
-    settings.auth.apikey = builtins.getEnv "SONARR_KEY";
+    environmentFiles = [ config.sops.secrets.sonarr_env.path ];
   };
   users.users.sonarr = {
     extraGroups = ["users" "transmission"];
@@ -309,7 +330,7 @@ in {
   services.radarr = {
     enable = true;
     openFirewall = true;
-    settings.auth.apikey = builtins.getEnv "RADARR_KEY";
+    environmentFiles = [ config.sops.secrets.radarr_env.path ];
   };
   users.users.radarr = {
     extraGroups = ["users" "transmission"];
@@ -317,7 +338,7 @@ in {
   services.prowlarr = {
     enable = true;
     openFirewall = true;
-    settings.auth.apikey = builtins.getEnv "PROWLARR_KEY";
+    environmentFiles = [ config.sops.secrets.prowlarr_env.path ];
   };
 
   services.caddy = {
@@ -488,204 +509,6 @@ in {
     settings = {
       HOST = "0.0.0.0";
     };
-  };
-
-  services.homepage-dashboard = {
-    enable = true;
-    openFirewall = true;
-    allowedHosts = "ops,ops.lan,ops:8082";
-    widgets = [
-      {
-        openmeteo = {
-          label = "Lanzarote";
-          units = "metric";
-          latitude = 28.96302000;
-          longitude = -13.54769000;
-          cache = 5;
-        };
-      }
-      {
-        resources = {
-          cpu = true;
-          memory = true;
-          cputemp = true;
-          uptime = true;
-          units = "metric";
-          refresh = 3000;
-        };
-      }
-      {
-        resources = {
-          label = "/";
-          disk = ["/"];
-        };
-      }
-      {
-        resources = {
-          label = "/srv/sdd";
-          disk = ["/srv/sdd"];
-        };
-      }
-    ];
-    services = [
-      {
-        "System" = [
-          {
-            "CPU" = {
-              icon = "glances";
-              href = "http://ops:61208";
-              widget = {
-                type = "glances";
-                url = "http://localhost:61208";
-                version = 4;
-                metric = "cpu";
-              };
-            };
-          }
-          {
-            "Memory" = {
-              widget = {
-                type = "glances";
-                url = "http://localhost:61208";
-                version = 4;
-                metric = "memory";
-              };
-            };
-          }
-          {
-            "Network" = {
-              widget = {
-                type = "glances";
-                url = "http://localhost:61208";
-                version = 4;
-                metric = "network:enP3p49s0";
-              };
-            };
-          }
-          {
-            "Processes" = {
-              widget = {
-                type = "glances";
-                url = "http://localhost:61208";
-                version = 4;
-                metric = "process";
-              };
-            };
-          }
-          {
-            "Uptime Kuma" = {
-              icon = "uptime-kuma";
-              href = "http://kuma.ops";
-              description = "Uptime monitor";
-              widget = {
-                type = "uptimekuma";
-                url = "http://localhost:3001";
-                slug = "default";
-              };
-            };
-          }
-        ];
-      }
-      {
-        "Servers" = [
-          {
-            Immich = {
-              icon = "immich";
-              href = "https://photos.${domain}";
-              description = "Immich picture server";
-              widget = {
-                type = "immich";
-                url = "https://photos.${domain}";
-                key = builtins.getEnv "IMMICH_ADMIN_KEY";
-                version = 2;
-              };
-            };
-          }
-          {
-            Caddy = {
-              icon = "caddy";
-              description = "Caddy web server";
-              widget = {
-                type = "caddy";
-                url = "http://localhost:2019";
-              };
-            };
-          }
-          {
-            HomeAssistant = {
-              icon = "home-assistant";
-              description = "Home Assistant";
-              href = "https://ha.${domain}";
-              widget = {
-                type = "homeassistant";
-                url = "http://localhost:8123";
-                key = builtins.getEnv "HASS_KEY";
-                custom = [
-                  {
-                    state = "sensor.esp32ps5_temperature";
-                    label = "PS5 Temperature";
-                  }
-                ];
-              };
-            };
-          }
-        ];
-      }
-      {
-        "Downloads" = [
-          {
-            Transmission = {
-              icon = "transmission";
-              description = "Torrent client";
-              widget = {
-                type = "transmission";
-                url = "http://localhost:9091";
-              };
-            };
-          }
-          {
-            Radarr = {
-              icon = "radarr";
-              href = "http://ops:7878";
-              description = "Movies";
-              widget = {
-                type = "radarr";
-                url = "http://localhost:7878";
-                key = builtins.getEnv "RADARR_KEY";
-                enableBlocks = true;
-                showEpisodeNumber = true;
-              };
-            };
-          }
-          {
-            Sonarr = {
-              icon = "sonarr";
-              href = "http://ops:8989";
-              description = "TV Shows";
-              widget = {
-                type = "sonarr";
-                url = "http://localhost:8989";
-                key = builtins.getEnv "SONARR_KEY";
-                enableBlocks = true;
-                showEpisodeNumber = true;
-              };
-            };
-          }
-          {
-            Prowlarr = {
-              icon = "prowlarr";
-              href = "http://ops:9696";
-              description = "Trackers";
-              widget = {
-                type = "prowlarr";
-                url = "http://localhost:9696";
-                key = builtins.getEnv "PROWLARR_KEY";
-              };
-            };
-          }
-        ];
-      }
-    ];
   };
 
   nixpkgs.config.permittedInsecurePackages = [

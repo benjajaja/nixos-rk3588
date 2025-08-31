@@ -22,12 +22,12 @@
       max_size = 10;
     };
     # The unique ID of this appservice.
-    id = "telegramos";
+    id = "telegrambot";
     # Username of the appservice bot.
-    bot_username = "telegramos";
+    bot_username = "telegrambot";
     # Display name and avatar for bot. Set to "remove" to remove display name/avatar, leave empty
     # to leave display name/avatar as-is.
-    bot_displayname = "Telegramos Bot";
+    bot_displayname = "Telegram Bridge Bot";
     bot_avatar = "mxc://maunium.net/tJCRmUyJDsgRNgqhOgoiHWbX";
 
     # Whether or not to receive ephemeral events via appservice transactions.
@@ -103,7 +103,7 @@
     permissions = {
       "*" = "relaybot";
       "qdice.wtf" = "full";
-      "@telegramos:qdice.wtf" = "admin";
+      "@telegrambot:qdice.wtf" = "admin";
     };
   };
 

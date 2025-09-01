@@ -6,7 +6,7 @@
     # {{.Phone}}        - phone number (international format)
     # {{.FullName}}     - Name you set in the contacts list
     # displayname_template: "{{if .BusinessName}}{{.BusinessName}}{{else if .PushName}}{{.PushName}}{{else}}{{.JID}}{{end}} (WA)"
-    displayname_template = "{{if .BusinessName}}{{.BusinessName}}{{else if .PushName}}{{.PushName}}{{else if .FullName}}{{.FullName}}{{else}}{{.JID}}{{end}} (WA)";
+    displayname_template = "{{if .BusinessName}}{{.BusinessName}}{{else if .PushName}}{{.PushName}}{{else if .FullName}}{{.FullName}}{{else}}{{.Phone}}{{end}} (WA)";
   };
 
   homeserver = {

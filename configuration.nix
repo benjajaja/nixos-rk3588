@@ -125,10 +125,6 @@ in {
       "d /srv/media/torrents/radarr 0777 transmission users - -"
       "d /srv/media/torrents/sonarr 0777 transmission users - -"
 
-      # matrix secrets
-      "d /var/lib/matrix-synapse/secrets 0700 matrix-synapse matrix-synapse -"
-      "L+ /var/lib/matrix-synapse/homeserver.yaml - - - - ${./homeserver.yaml}"
-
       # immich - this might be because of an initial mismatch between db and fs.
       "d /srv/photos 0777 immich immich - -"
       "d /srv/photos/encoded-video 0777 immich immich - -"
@@ -403,18 +399,10 @@ in {
       # "cache-memory", "jwt", "oidc", "postgres", "redis", "saml2", "sentry", "systemd", "url-preview"
       # "user-search"
     ];
+    settings = import ./matrix-synapse.nix { inherit config lib; };
     extraConfigFiles = [
-      "/var/lib/matrix-synapse/homeserver.yaml"
       config.sops.secrets.homeserver_secrets_yaml.path
     ];
-    settings = {
-      database = {
-        name = "sqlite3";
-        args.database = "/var/lib/matrix-synapse/homeserver.db";
-      };
-      signing_key_path = config.sops.secrets.qdice_wtf_signing_key.path;
-      app_service_config_files = [ config.sops.secrets.doublepuppet_yaml.path ];
-    };
   };
   services.mautrix-telegram = {
     enable = true;

@@ -36,6 +36,11 @@ in {
     mode = "0400";
     restartUnits = [ "prowlarr.service" "home-assistant.service" ];
   };
+  sops.secrets."postfix-sasl-passwords" = {
+    mode = "0400";
+    owner = "postfix";
+    group = "postfix";
+  };
 
   # Set your time zone.
   time.timeZone = "Atlantic/Canary";
@@ -534,7 +539,7 @@ in {
       # SASL authentication for Postfix to authenticate TO MailerSend
       smtp_sasl_auth_enable = true;
       smtp_sasl_security_options = "noanonymous";
-      smtp_sasl_password_maps = "texthash:/var/keys/postfix-sasl-password";
+      smtp_sasl_password_maps = "texthash:${config.sops.secrets."postfix-sasl-passwords".path}";
       smtp_tls_security_level = "encrypt";
       smtp_tls_wrappermode = false;
       

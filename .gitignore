@@ -19,5 +19,3 @@ outputs/
 
 # Matrix secrets
 matrix/*
-postfix-sasl-password
-.env

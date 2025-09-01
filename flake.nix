@@ -126,13 +126,6 @@
             group = "mautrix-whatsapp";
             permissions = "0600";
           };
-          "postfix-sasl-password" = {
-            keyFile = "${cwd}/postfix-sasl-password";
-            destDir = "/var/keys";
-            user = "postfix";
-            group = "postfix";
-            permissions = "0600";
-          };
         };
       };
     };

@@ -16,32 +16,7 @@ in {
   # =========================================================================
   # nix run nixpkgs#colmena apply -- --impure
 
-  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-  sops.defaultSopsFile = ./secrets/api_keys.yaml;
-  sops.secrets.radarr_env = {
-    owner = "radarr";
-    group = "radarr";
-    mode = "0400";
-    restartUnits = [ "radarr.service" "home-assistant.service" ];
-  };
-  sops.secrets.sonarr_env = {
-    owner = "sonarr";
-    group = "sonarr";
-    mode = "0400";
-    restartUnits = [ "sonarr.service" "home-assistant.service" ];
-  };
-  sops.secrets.prowlarr_env = {
-    owner = "nobody";
-    group = "users";
-    mode = "0400";
-    restartUnits = [ "prowlarr.service" "home-assistant.service" ];
-  };
-  sops.secrets."postfix-sasl-passwords" = {
-    mode = "0400";
-    owner = "postfix";
-    group = "postfix";
-  };
-
+  sops = import ./sops.nix;
   # Set your time zone.
   time.timeZone = "Atlantic/Canary";
 
@@ -152,6 +127,7 @@ in {
 
       # matrix secrets
       "d /var/lib/matrix-synapse/secrets 0700 matrix-synapse matrix-synapse -"
+      "L+ /var/lib/matrix-synapse/homeserver.yaml - - - - ${./homeserver.yaml}"
 
       # immich - this might be because of an initial mismatch between db and fs.
       "d /srv/photos 0777 immich immich - -"
@@ -427,27 +403,28 @@ in {
       # "cache-memory", "jwt", "oidc", "postgres", "redis", "saml2", "sentry", "systemd", "url-preview"
       # "user-search"
     ];
-    extraConfigFiles = ["/var/lib/matrix-synapse/secrets/homeserver.yaml"];
+    extraConfigFiles = [
+      "/var/lib/matrix-synapse/homeserver.yaml"
+      config.sops.secrets.homeserver_secrets_yaml.path
+    ];
     settings = {
       database = {
         name = "sqlite3";
         args.database = "/var/lib/matrix-synapse/homeserver.db";
       };
-      signing_key_path = "/var/lib/matrix-synapse/secrets/qdice.wtf.signing.key";
-      app_service_config_files = [
-        "/var/lib/matrix-synapse/secrets/doublepuppet.yaml"
-      ];
+      signing_key_path = config.sops.secrets.qdice_wtf_signing_key.path;
+      app_service_config_files = [ config.sops.secrets.doublepuppet_yaml.path ];
     };
   };
   services.mautrix-telegram = {
     enable = true;
     settings = import ./mautrix-telegram.nix;
-    environmentFile = "/var/lib/matrix-synapse/secrets/mautrix-telegram.env";
+    environmentFile = config.sops.secrets.mautrix_telegram_env.path;
   };
   services.mautrix-whatsapp = {
     enable = true;
     settings = import ./mautrix-whatsapp.nix;
-    environmentFile = "/var/lib/matrix-synapse/secrets/mautrix-whatsapp.env";
+    environmentFile = config.sops.secrets.mautrix_whatsapp_env.path;
   };
 
   services.home-assistant = {
@@ -539,7 +516,7 @@ in {
       # SASL authentication for Postfix to authenticate TO MailerSend
       smtp_sasl_auth_enable = true;
       smtp_sasl_security_options = "noanonymous";
-      smtp_sasl_password_maps = "texthash:${config.sops.secrets."postfix-sasl-passwords".path}";
+      smtp_sasl_password_maps = "texthash:${config.sops.secrets."postfix_sasl_passwords".path}";
       smtp_tls_security_level = "encrypt";
       smtp_tls_wrappermode = false;
       

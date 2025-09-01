@@ -90,43 +90,43 @@
           ./zigbee.nix
         ];
 
-        deployment.keys = {
-          "homeserver.yaml" = {
-            keyFile = "${cwd}/matrix/homeserver.yaml";
-            destDir = "/var/lib/matrix-synapse/secrets";
-            user = "matrix-synapse";
-            group = "matrix-synapse";
-            permissions = "0600";
-          };
-          "qdice.wtf.signing.key" = {
-            keyFile = "${cwd}/matrix/qdice.wtf.signing.key";
-            destDir = "/var/lib/matrix-synapse/secrets";
-            user = "matrix-synapse";
-            group = "matrix-synapse";
-            permissions = "0600";
-          };
-          "doublepuppet.yaml" = {
-            keyFile = "${cwd}/matrix/doublepuppet.yaml";
-            destDir = "/var/lib/matrix-synapse/secrets";
-            user = "matrix-synapse";
-            group = "matrix-synapse";
-            permissions = "0600";
-          };
-          "mautrix-telegram.env" = {
-            keyFile = "${cwd}/matrix/mautrix-telegram.env";
-            destDir = "/var/lib/matrix-synapse/secrets";
-            user = "mautrix-telegram";
-            group = "mautrix-telegram";
-            permissions = "0600";
-          };
-          "mautrix-whatsapp.env" = {
-            keyFile = "${cwd}/matrix/mautrix-whatsapp.env";
-            destDir = "/var/lib/matrix-synapse/secrets";
-            user = "mautrix-whatsapp";
-            group = "mautrix-whatsapp";
-            permissions = "0600";
-          };
-        };
+        # deployment.keys = {
+          # "homeserver.yaml" = {
+            # keyFile = "${cwd}/matrix/homeserver.yaml";
+            # destDir = "/var/lib/matrix-synapse/secrets";
+            # user = "matrix-synapse";
+            # group = "matrix-synapse";
+            # permissions = "0600";
+          # };
+          # "qdice.wtf.signing.key" = {
+            # keyFile = "${cwd}/matrix/qdice.wtf.signing.key";
+            # destDir = "/var/lib/matrix-synapse/secrets";
+            # user = "matrix-synapse";
+            # group = "matrix-synapse";
+            # permissions = "0600";
+          # };
+          # "doublepuppet.yaml" = {
+            # keyFile = "${cwd}/matrix/doublepuppet.yaml";
+            # destDir = "/var/lib/matrix-synapse/secrets";
+            # user = "matrix-synapse";
+            # group = "matrix-synapse";
+            # permissions = "0600";
+          # };
+          # "mautrix-telegram.env" = {
+            # keyFile = "${cwd}/matrix/mautrix-telegram.env";
+            # destDir = "/var/lib/matrix-synapse/secrets";
+            # user = "mautrix-telegram";
+            # group = "mautrix-telegram";
+            # permissions = "0600";
+          # };
+          # "mautrix-whatsapp.env" = {
+            # keyFile = "${cwd}/matrix/mautrix-whatsapp.env";
+            # destDir = "/var/lib/matrix-synapse/secrets";
+            # user = "mautrix-whatsapp";
+            # group = "mautrix-whatsapp";
+            # permissions = "0600";
+          # };
+        # };
       };
     };
     devShells.${localSystem}.default = let

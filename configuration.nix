@@ -443,18 +443,26 @@ in {
       };
       automation = "!include automations.yaml";
       history = {};
+      zha = {
+        zigpy_config = {
+          serial = {
+            port = "socket://slzb-06.lan:6638";
+            baudrate = 115200;
+          };
+        };
+        database_path = "/var/lib/hass/zigbee.db";
+      };
     };
     package = pkgs.home-assistant.override {
       extraPackages = ps:
         with ps; [
           paho-mqtt
           gtts
-          roombapy
           python-kasa
           aemet-opendata
-          glances-api
           transmission-rpc
           aiopyarr
+          zigpy-znp
         ];
     };
   };

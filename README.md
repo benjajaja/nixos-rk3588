@@ -23,7 +23,7 @@ https://michael.stapelberg.ch/posts/2025-08-24-secret-management-with-sops-nix
   * Backup directory, torrent downloads, and general storage.
 * Nightly backup to external disk
   * TODO: add some cloud backup too
-* Home Assistant and Zigbee2MQTT
+* Home Assistant with ZHA
   * Turns on ceiling fan / light from wall switch via RF emitter.
   * Temperature, humidity and PM2.5/PM10 particle measurement.
   * Console cooling fan monitoring.

@@ -57,6 +57,7 @@ in {
     ldns # replacement of dig, it provide the command `drill`
     socat # replacement of openbsd-netcat
     tcpdump # A powerful command-line packet analyzer
+    htop
 
     # archives
     zip
@@ -139,6 +140,9 @@ in {
       "f /srv/photos/thumbs/.immich 0777 immich immich - -"
       "d /srv/photos/backups 0777 immich immich - -"
       "f /srv/photos/backups/.immich 0777 immich immich - -"
+
+      "d /var/lib/hass/zhaquirks 0755 hass hass -"
+      "C /var/lib/hass/zhaquirks/esphome_particles_quirks.py 0644 hass hass - ${./esphome_particles_quirks.py}"
     ]
   ];
 
@@ -451,6 +455,8 @@ in {
           };
         };
         database_path = "/var/lib/hass/zigbee.db";
+        enable_quirks = true;
+        custom_quirks_path = "/var/lib/hass/zhaquirks/";
       };
     };
     package = pkgs.home-assistant.override {
@@ -466,6 +472,7 @@ in {
         ];
     };
   };
+  
   services.mosquitto = {
     enable = true;
     listeners = [

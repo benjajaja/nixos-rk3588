@@ -58,6 +58,13 @@ in {
     socat # replacement of openbsd-netcat
     tcpdump # A powerful command-line packet analyzer
     htop
+    ncdu
+    busybox
+    file
+    which
+    tree
+    gnused
+    gawk
 
     # archives
     zip
@@ -68,17 +75,10 @@ in {
     gnutar
 
     # misc
-    file
-    which
-    tree
-    gnused
-    gawk
-    busybox
     stress-ng
     lm_sensors
     opifan.packages.${pkgs.system}.wiringOP
     opifan.packages.${pkgs.system}.opifancontrol
-    ncdu
     fastfetch
     sqlite
     mailutils
@@ -361,12 +361,6 @@ in {
         reverse_proxy localhost:8082
       '';
     };
-    virtualHosts."kuma.ops" = {
-      extraConfig = ''
-        tls internal
-        reverse_proxy localhost:3001
-      '';
-    };
   };
 
   services.opifancontrol = {
@@ -384,8 +378,8 @@ in {
     fans."closet" = {
       fanGpioPin = 22;
       tempLow = 40;
-      tempMed = 45;
-      tempHigh = 50;
+      tempMed = 50;
+      tempHigh = 60;
       fanLow = 20;
       fanMed = 30;
       fanHigh = 40;
@@ -488,12 +482,6 @@ in {
   services.glances = {
     enable = true;
     openFirewall = true;
-  };
-  services.uptime-kuma = {
-    enable = true;
-    settings = {
-      HOST = "0.0.0.0";
-    };
   };
 
   nixpkgs.config.permittedInsecurePackages = [

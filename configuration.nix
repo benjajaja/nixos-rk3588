@@ -224,7 +224,6 @@ in {
     80 # http
     443 #https
     51413 # transmission
-    1883 # mqtt
     8020 # zigbee
     8080 # RTL stuff
   ];
@@ -276,7 +275,7 @@ in {
     mediaLocation = "/srv/photos";
     openFirewall = true;
   };
-  # users.users.immich.extraGroups = [ "video" "render" "users" ];
+  users.users.immich.extraGroups = [ "video" "render" "users" ];
 
   services.transmission = {
     enable = true;
@@ -352,13 +351,6 @@ in {
     virtualHosts."ha.qdice.wtf" = {
       extraConfig = ''
         reverse_proxy localhost:8123
-      '';
-    };
-
-    virtualHosts."ops" = {
-      extraConfig = ''
-        tls internal
-        reverse_proxy localhost:8082
       '';
     };
   };
@@ -456,7 +448,6 @@ in {
     package = pkgs.home-assistant.override {
       extraPackages = ps:
         with ps; [
-          paho-mqtt
           gtts
           python-kasa
           aemet-opendata
@@ -467,18 +458,6 @@ in {
     };
   };
   
-  services.mosquitto = {
-    enable = true;
-    listeners = [
-      {
-        port = 1883;
-        acl = ["pattern readwrite #"];
-        omitPasswordAuth = true;
-        settings.allow_anonymous = true;
-      }
-    ];
-  };
-
   services.glances = {
     enable = true;
     openFirewall = true;

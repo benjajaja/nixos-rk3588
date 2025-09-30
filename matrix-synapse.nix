@@ -18,8 +18,18 @@
   ];
 
   database = {
-    name = "sqlite3";
-    args.database = "/var/lib/matrix-synapse/homeserver.db";
+    # name = "sqlite3";
+    # args.database = "/var/lib/matrix-synapse/homeserver.db";
+    name = "psycopg2";
+    args = {
+      user = "synapse";
+      # password = "???"; # This will be replaced by extraConfigFiles
+      database = "synapse";
+      host = "localhost";
+      port = 5432;
+      cp_min = 5;
+      cp_max = 10;
+    };
   };
 
   signing_key_path = config.sops.secrets.qdice_wtf_signing_key.path;

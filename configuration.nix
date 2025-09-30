@@ -174,9 +174,9 @@ in {
       
       # For Matrix Synapse - safely backup the SQLite database
       echo "Backing up Matrix Synapse database..."
-      ${pkgs.sqlite}/bin/sqlite3 /var/lib/matrix-synapse/homeserver.db ".backup /tmp/homeserver_backup.db"
-      ${pkgs.rsync}/bin/rsync -av --delete /tmp/homeserver_backup.db /srv/sdd/backup/matrix/
-      rm /tmp/homeserver_backup.db
+      # ${pkgs.sqlite}/bin/sqlite3 /var/lib/matrix-synapse/homeserver.db ".backup /tmp/homeserver_backup.db"
+      # ${pkgs.rsync}/bin/rsync -av --delete /tmp/homeserver_backup.db /srv/sdd/backup/matrix/
+      # rm /tmp/homeserver_backup.db
       
       # Backup other Matrix files
       echo "Backing up Matrix Synapse secrets..."
@@ -380,6 +380,17 @@ in {
     boardType = "orangepi5plus";
   };
 
+
+  services.postgresql = {
+    enable = true;
+    package = pkgs.postgresql_15;
+    authentication = pkgs.lib.mkOverride 10 ''
+      local all all trust
+      host synapse synapse ::1/128 md5
+      host synapse synapse 127.0.0.1/32 md5
+    '';
+  };
+
   services.matrix-synapse = {
     enable = true;
     extras = [
@@ -403,6 +414,21 @@ in {
     enable = true;
     settings = import ./mautrix-whatsapp.nix;
     environmentFile = config.sops.secrets.mautrix_whatsapp_env.path;
+  };
+  systemd.services.postgresql.postStart = ''
+    DB_PASSWORD=$(cat ${config.sops.secrets."postgresql/synapse_password".path})
+    $PSQL -tAc "SELECT 1 FROM pg_database WHERE datname='synapse'" | grep -q 1 || $PSQL -tAc "CREATE DATABASE synapse"
+    $PSQL -tAc "SELECT 1 FROM pg_roles WHERE rolname='synapse'" | grep -q 1 || $PSQL -tAc "CREATE USER synapse WITH PASSWORD '$DB_PASSWORD'"
+    $PSQL -tAc "GRANT ALL PRIVILEGES ON DATABASE synapse TO synapse"
+    $PSQL -d synapse -tAc "GRANT ALL ON SCHEMA public TO synapse"
+  '';
+  systemd.services.postgresql = {
+    after = [ "sops-nix.service" ];
+    wants = [ "sops-nix.service" ];
+  };
+  systemd.services.matrix-synapse = {
+    after = [ "sops-nix.service" ];
+    wants = [ "sops-nix.service" ];
   };
 
   services.home-assistant = {

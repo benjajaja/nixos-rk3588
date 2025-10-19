@@ -82,6 +82,7 @@ in {
     fastfetch
     sqlite
     mailutils
+    synapse-admin
 
     # servers - is this still necessary?
     nfs-utils
@@ -353,6 +354,13 @@ in {
         reverse_proxy localhost:8123
       '';
     };
+    virtualHosts."matrix-admon.qdice.wtf" = {
+      extraConfig = ''
+        root * ${pkgs.synapse-admin}
+        file_server
+        try_files {path} /index.html
+      '';
+    };
   };
 
   services.opifancontrol = {
@@ -416,8 +424,8 @@ in {
     environmentFile = config.sops.secrets.mautrix_whatsapp_env.path;
   };
   systemd.services.postgresql.postStart = ''
-    DB_PASSWORD=$(cat ${config.sops.secrets."postgresql/synapse_password".path})
-    $PSQL -tAc "SELECT 1 FROM pg_database WHERE datname='synapse'" | grep -q 1 || $PSQL -tAc "CREATE DATABASE synapse"
+    DB_PASSWORD=$(cat ${config.sops.secrets.postgresql_synapse_password.path})
+    $PSQL -tAc "SELECT 1 FROM pg_database WHERE datname='synapse'" | grep -q 1 || $PSQL -tAc "CREATE DATABASE synapse OWNER synapse ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' TEMPLATE template0"
     $PSQL -tAc "SELECT 1 FROM pg_roles WHERE rolname='synapse'" | grep -q 1 || $PSQL -tAc "CREATE USER synapse WITH PASSWORD '$DB_PASSWORD'"
     $PSQL -tAc "GRANT ALL PRIVILEGES ON DATABASE synapse TO synapse"
     $PSQL -d synapse -tAc "GRANT ALL ON SCHEMA public TO synapse"
@@ -507,7 +515,7 @@ in {
       inet_protocols = "ipv4";
       
       # Relay all mail directly to MailerSend (replaces msmtp)
-      relayhost = "[smtp.mailersend.net]:587";
+      relayhost = "[smtp-relay.brevo.com]:587";
       
       # SASL authentication for Postfix to authenticate TO MailerSend
       smtp_sasl_auth_enable = true;

@@ -58,6 +58,10 @@
       owner = "mautrix-whatsapp";
       group = "mautrix-whatsapp";
     };
+    postgresql_synapse_password = {
+      owner = "postgres";
+      group = "postgres";
+    };
   };
 }
 

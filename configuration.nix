@@ -122,10 +122,10 @@ in {
     [
       "d /srv 0777 root users - -"
       "d /srv/backup 0777 root users - -"
-      "d /srv/media 0777 root users - -"
-      "d /srv/media/torrents 0777 transmission users - -"
-      "d /srv/media/torrents/radarr 0777 transmission users - -"
-      "d /srv/media/torrents/sonarr 0777 transmission users - -"
+      # "d /srv/media 0777 root users - -"
+      # "d /srv/media/torrents 0777 transmission users - -"
+      # "d /srv/media/torrents/radarr 0777 transmission users - -"
+      # "d /srv/media/torrents/sonarr 0777 transmission users - -"
 
       # immich - this might be because of an initial mismatch between db and fs.
       "d /srv/photos 0777 immich immich - -"
@@ -154,7 +154,6 @@ in {
     statdPort = 4000;
     exports = ''
       /srv         192.168.8.0/24(rw,fsid=0,no_subtree_check,no_root_squash,insecure)
-      /srv/media   192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash,insecure)
       /srv/backup  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash,insecure)
       /srv/photos  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash,insecure)
       /srv/sdd     192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash,insecure)
@@ -283,7 +282,7 @@ in {
     openRPCPort = true;
     openPeerPorts = true;
     settings = {
-      "download-dir" = "/srv/media/torrents";
+      "download-dir" = "/srv/sdd/transmission";
       "rpc-bind-address" = "0.0.0.0";
       "rpc-authentication-required" = false;
       "rpc-host-whitelist-enabled" = false;
@@ -297,7 +296,7 @@ in {
   };
   users.users.transmission = {
     isSystemUser = true;
-    extraGroups = ["users"]; # let it write (move files) to /srv/media
+    extraGroups = ["users"]; # let it write (move files) to /srv/sdd
   };
 
   services.sonarr = {

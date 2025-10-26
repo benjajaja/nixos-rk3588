@@ -6,15 +6,17 @@
     opifan.url = "github:benjajaja/opifancontrol?ref=main";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+    meshtastic.url = "github:nvmd/nixos-meshtastic";
   };
 
   outputs = {
     nixpkgs,
     opifan,
     sops-nix,
+    meshtastic,
     ...
   }: let
-    inherit nixpkgs opifan sops-nix;
+    inherit nixpkgs opifan sops-nix meshtastic;
 
     # Possible values for compilationType: "local-native", "remote-native", or "cross".
     compilationType = "remote-native"; # Choose the compilation type here.
@@ -51,12 +53,24 @@
     };
 
     cwd = builtins.getEnv "PWD"; # this is intentional: https://colmena.cli.rs/unstable/features/keys.html#flakes
+
+    overlays = [
+      (final: prev: {
+        # This is for meshtastic, should solve this in their flake.
+        ulfius = prev.ulfius.overrideAttrs (old: {
+          doCheck = false;
+        });
+      })
+    ];
   in {
     colmena = {
       meta = {
-        nixpkgs = import nixpkgs {system = localSystem;};
+        nixpkgs = import nixpkgs {
+          system = localSystem;
+          inherit overlays;
+        };
         specialArgs = {
-          inherit nixpkgs opifan;
+          inherit nixpkgs opifan meshtastic;
         };
       };
 
@@ -81,6 +95,7 @@
           bootloaderModule
           opifan.nixosModules.default
           sops-nix.nixosModules.sops
+          meshtastic.nixosModules.default
 
           # Custom configuration
           ./configuration.nix

@@ -18,7 +18,41 @@
         "type": "github"
       }
     },
+    "meshtastic": {
+      "inputs": {
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1740840890,
+        "narHash": "sha256-dzI8lJsKVOKcvf+CQuVhYfB7xL3Sa11JBXSFfXdVHEU=",
+        "owner": "nvmd",
+        "repo": "nixos-meshtastic",
+        "rev": "f99cf45fbb118dcd2b3595ffdd20ba1a04f7c8d5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nvmd",
+        "repo": "nixos-meshtastic",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
+      "locked": {
+        "lastModified": 1740603184,
+        "narHash": "sha256-t+VaahjQAWyA+Ctn2idyo1yxRIYpaDxMgHkgCNiMJa4=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "f44bd8ca21e026135061a0a57dcf3d0775b67a49",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-24.11",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
       "locked": {
         "lastModified": 1754689972,
         "narHash": "sha256-eogqv6FqZXHgqrbZzHnq43GalnRbLTkbBbFtEfm1RSc=",
@@ -34,7 +68,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_2": {
+    "nixpkgs_3": {
       "locked": {
         "lastModified": 1752012998,
         "narHash": "sha256-Q82Ms+FQmgOBkdoSVm+FBpuFoeUAffNerR5yVV7SgT8=",
@@ -51,7 +85,7 @@
     "opifan": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs_3"
       },
       "locked": {
         "lastModified": 1752366884,
@@ -70,7 +104,8 @@
     },
     "root": {
       "inputs": {
-        "nixpkgs": "nixpkgs",
+        "meshtastic": "meshtastic",
+        "nixpkgs": "nixpkgs_2",
         "opifan": "opifan",
         "sops-nix": "sops-nix"
       }

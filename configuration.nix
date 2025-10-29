@@ -97,6 +97,30 @@ in {
 
     python3Packages.meshtastic
 
+    # Meshtastic configuration script
+    (writeShellScriptBin "configure-meshtastic" ''
+      ${python3Packages.meshtastic}/bin/meshtastic --host localhost \
+        --set mqtt.enabled true \
+        --set mqtt.address mqtt.meshtastic.es \
+        --set mqtt.username meshdev \
+        --set mqtt.password large4cats \
+        --set mqtt.encryption_enabled true \
+        --set mqtt.json_enabled false \
+        --set mqtt.tls_enabled false \
+        --set mqtt.root msh/EU_868 \
+        --set mqtt.proxy_to_client_enabled false \
+        --set mqtt.map_reporting_enabled true \
+        --set position.fixed_position true \
+        --setlat 28.954586 \
+        --setlon -13.553968 \
+        --set-owner 'Lanzarote TEST ste3ls@gmail.com' \
+        --set-owner-short 'LZ1' \
+        --set lora.region EU_868 \
+        --set lora.config_ok_to_mqtt true \
+        --set position.gps_update_interval 86400 \
+        --set position.position_broadcast_smart_enabled false
+    '')
+
     # stop annoying $TERM complaints
     kitty.terminfo
   ];

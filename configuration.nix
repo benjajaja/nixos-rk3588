@@ -4,7 +4,7 @@
   pkgs,
   nixpkgs,
   opifan,
-  meshtastic,
+  meshtastic, # just for the funny fried chicken patch
   ...
 }: let
   domain = "qdice.wtf";
@@ -95,9 +95,10 @@ in {
     rtl-ais
     rtl_433
 
+    python3Packages.meshtastic
+
     # stop annoying $TERM complaints
     kitty.terminfo
-    meshtastic.packages.${pkgs.system}.meshtasticd
   ];
 
   # replace default editor with neovim
@@ -228,7 +229,6 @@ in {
     51413 # transmission
     8020 # zigbee
     8080 # RTL stuff
-    4403 # meshtastic API
   ];
   networking.firewall.allowedUDPPorts = [
     111 # rpcbind
@@ -551,26 +551,42 @@ in {
     };
   };
 
-  systemd.services.meshtasticd = {
-    description = "Meshtastic Daemon";
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
-    wantedBy = [ "multi-user.target" ];
-    
-    serviceConfig = {
-      Type = "simple";
-      ExecStart = "${meshtastic.packages.${pkgs.system}.meshtasticd}/bin/meshtasticd";
-      Restart = "on-failure";
-      RestartSec = "5s";
-      User = "root";
+  services.meshtastic = {
+    enable = true;
+
+    package = meshtastic.packages.${pkgs.system}.meshtasticd.overrideAttrs (old: {
+      patches = (old.patches or []) ++ [
+        (pkgs.writeText "hardware-model.patch" ''
+          --- a/src/platform/portduino/architecture.h
+          +++ b/src/platform/portduino/architecture.h
+          @@ -6,7 +6,7 @@
+           
+           #define ARCH_PORTDUINO
+           
+          -#define HW_VENDOR meshtastic_HardwareModel_PORTDUINO
+          +#define HW_VENDOR meshtastic_HardwareModel_RESERVED_FRIED_CHICKEN
+           
+           //
+           // defaults for no device
+        '')
+      ];
+    });
+
+    openFirewall = true;  # open firewall for API and webserver
+
+    # enableAutodiscovery = true;
+
+    settings = {
+      General = {
+        MACAddress = "c0:74:2b:fb:5c:6d";
+      };
+      Logging = {
+        LogLevel = "debug";
+      };
+      Webserver = {};
     };
+    # extraFlags = [ "--hwid=1" ];
   };
-  environment.etc."meshtasticd/config.yaml".text = ''
-    General:
-      MACAddress: "c0:74:2b:fb:5c:6d"
-    Logging:
-      LogLevel: debug
-  '';
 
   system.stateVersion = "23.11";
 }

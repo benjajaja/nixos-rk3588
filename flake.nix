@@ -6,7 +6,7 @@
     opifan.url = "github:benjajaja/opifancontrol?ref=main";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-    meshtastic.url = "github:nvmd/nixos-meshtastic";
+    meshtastic.url = "github:benjajaja/nixos-meshtastic";
   };
 
   outputs = {
@@ -52,22 +52,11 @@
       };
     };
 
-    cwd = builtins.getEnv "PWD"; # this is intentional: https://colmena.cli.rs/unstable/features/keys.html#flakes
-
-    overlays = [
-      (final: prev: {
-        # This is for meshtastic, should solve this in their flake.
-        ulfius = prev.ulfius.overrideAttrs (old: {
-          doCheck = false;
-        });
-      })
-    ];
   in {
     colmena = {
       meta = {
         nixpkgs = import nixpkgs {
           system = localSystem;
-          inherit overlays;
         };
         specialArgs = {
           inherit nixpkgs opifan meshtastic;

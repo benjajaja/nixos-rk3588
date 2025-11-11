@@ -4,7 +4,6 @@
   pkgs,
   nixpkgs,
   opifan,
-  meshtastic, # just for the funny fried chicken patch
   ...
 }: let
   domain = "qdice.wtf";
@@ -94,58 +93,6 @@ in {
     rtl-sdr
     rtl-ais
     rtl_433
-
-    python3Packages.meshtastic
-
-    # Meshtastic configuration script
-    (writeShellScriptBin "configure-meshtastic" ''
-      GROUP="$1"
-
-      case "$GROUP" in
-        mqtt)
-          ${python3Packages.meshtastic}/bin/meshtastic --host localhost \
-            --set mqtt.enabled true \
-            --set mqtt.address mqtt.meshtastic.es \
-            --set mqtt.username meshdev \
-            --set mqtt.password large4cats \
-            --set mqtt.encryption_enabled true \
-            --set mqtt.json_enabled false \
-            --set mqtt.tls_enabled false \
-            --set mqtt.root msh/EU_868 \
-            --set mqtt.proxy_to_client_enabled false \
-            --set mqtt.map_reporting_enabled true
-          ;;
-        position)
-          ${python3Packages.meshtastic}/bin/meshtastic --host localhost \
-            --set position.fixed_position true \
-            --setlat 28.954586 \
-            --setlon -13.553968 \
-            --set position.gps_update_interval 86400 \
-            --set position.position_broadcast_smart_enabled false
-          ;;
-        owner)
-          ${python3Packages.meshtastic}/bin/meshtastic --host localhost \
-            --set-owner 'Lanzarote TEST ste3ls@gmail.com' \
-            --set-owner-short 'LZ1'
-          ;;
-        lora)
-          ${python3Packages.meshtastic}/bin/meshtastic --host localhost \
-            --set lora.region EU_868 \
-            --set lora.config_ok_to_mqtt true \
-            --set lora.ignore_mqtt false
-          ;;
-        *)
-          echo "Usage: configure-meshtastic <group>"
-          echo ""
-          echo "Available groups:"
-          echo "  mqtt      - Configure MQTT settings"
-          echo "  position  - Configure position and GPS settings"
-          echo "  owner     - Configure owner information"
-          echo "  lora      - Configure LoRa settings"
-          exit 1
-          ;;
-      esac
-    '')
 
     # stop annoying $TERM complaints
     kitty.terminfo
@@ -406,11 +353,6 @@ in {
         reverse_proxy localhost:8123
       '';
     };
-    virtualHosts."mesh.qdice.wtf" = {
-      extraConfig = ''
-        reverse_proxy localhost:4403
-      '';
-    };
     virtualHosts."matrix-admon.qdice.wtf" = {
       extraConfig = ''
         root * ${pkgs.synapse-admin}
@@ -599,43 +541,6 @@ in {
       # Simple configuration
       compatibility_level = "3.6";
     };
-  };
-
-  services.meshtastic = {
-    enable = true;
-
-    package = meshtastic.packages.${pkgs.system}.meshtasticd.overrideAttrs (old: {
-      patches = (old.patches or []) ++ [
-        (pkgs.writeText "hardware-model.patch" ''
-          --- a/src/platform/portduino/architecture.h
-          +++ b/src/platform/portduino/architecture.h
-          @@ -6,7 +6,7 @@
-           
-           #define ARCH_PORTDUINO
-           
-          -#define HW_VENDOR meshtastic_HardwareModel_PORTDUINO
-          +#define HW_VENDOR meshtastic_HardwareModel_RESERVED_FRIED_CHICKEN
-           
-           //
-           // defaults for no device
-        '')
-      ];
-    });
-
-    openFirewall = true;  # open firewall for API and webserver
-
-    # enableAutodiscovery = true;
-
-    settings = {
-      General = {
-        MACAddress = "13:5f:7e:73:0f:fe";
-      };
-      Logging = {
-        LogLevel = "debug";
-      };
-      Webserver = {};
-    };
-    # extraFlags = [ "--hwid=1" ];
   };
 
   system.stateVersion = "23.11";

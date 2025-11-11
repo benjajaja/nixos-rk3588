@@ -6,17 +6,15 @@
     opifan.url = "github:benjajaja/opifancontrol?ref=main";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-    meshtastic.url = "github:benjajaja/nixos-meshtastic";
   };
 
   outputs = {
     nixpkgs,
     opifan,
     sops-nix,
-    meshtastic,
     ...
   }: let
-    inherit nixpkgs opifan sops-nix meshtastic;
+    inherit nixpkgs opifan sops-nix;
 
     # Possible values for compilationType: "local-native", "remote-native", or "cross".
     compilationType = "remote-native"; # Choose the compilation type here.
@@ -59,7 +57,7 @@
           system = localSystem;
         };
         specialArgs = {
-          inherit nixpkgs opifan meshtastic;
+          inherit nixpkgs opifan;
         };
       };
 
@@ -84,7 +82,6 @@
           bootloaderModule
           opifan.nixosModules.default
           sops-nix.nixosModules.sops
-          meshtastic.nixosModules.default
 
           # Custom configuration
           ./configuration.nix

@@ -18,41 +18,7 @@
         "type": "github"
       }
     },
-    "meshtastic": {
-      "inputs": {
-        "nixpkgs": "nixpkgs"
-      },
-      "locked": {
-        "lastModified": 1761766383,
-        "narHash": "sha256-6cQb8nMPsGe/TQDMmy88DjW/PShkLHHctWrzBJOyXKc=",
-        "owner": "benjajaja",
-        "repo": "nixos-meshtastic",
-        "rev": "c5792b16b464b218364d3db2e97bf928ab0ecd22",
-        "type": "github"
-      },
-      "original": {
-        "owner": "benjajaja",
-        "repo": "nixos-meshtastic",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
-      "locked": {
-        "lastModified": 1720338227,
-        "narHash": "sha256-PlL/yXNX/C87S2N8lF/HfOJhHForf/l7E6lVWZ4jMrw=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "b60793b86201040d9dee019a05089a9150d08b5b",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "b60793b86201040d9dee019a05089a9150d08b5b",
-        "type": "github"
-      }
-    },
-    "nixpkgs_2": {
       "locked": {
         "lastModified": 1754689972,
         "narHash": "sha256-eogqv6FqZXHgqrbZzHnq43GalnRbLTkbBbFtEfm1RSc=",
@@ -68,7 +34,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_3": {
+    "nixpkgs_2": {
       "locked": {
         "lastModified": 1752012998,
         "narHash": "sha256-Q82Ms+FQmgOBkdoSVm+FBpuFoeUAffNerR5yVV7SgT8=",
@@ -85,7 +51,7 @@
     "opifan": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs_3"
+        "nixpkgs": "nixpkgs_2"
       },
       "locked": {
         "lastModified": 1752366884,
@@ -104,8 +70,7 @@
     },
     "root": {
       "inputs": {
-        "meshtastic": "meshtastic",
-        "nixpkgs": "nixpkgs_2",
+        "nixpkgs": "nixpkgs",
         "opifan": "opifan",
         "sops-nix": "sops-nix"
       }

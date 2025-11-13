@@ -62,6 +62,10 @@
       owner = "postgres";
       group = "postgres";
     };
+    mosquitto-password = {
+      owner = "mosquitto";
+      group = "mosquitto";
+    };
   };
 }
 

@@ -101,8 +101,6 @@ in {
   # replace default editor with neovim
   environment.variables.EDITOR = "nvim";
 
-  networking.firewall.enable = true;
-
   virtualisation.docker = {
     enable = false;
   };
@@ -216,6 +214,7 @@ in {
     };
   };
 
+  networking.firewall.enable = true;
   networking.firewall.allowedTCPPorts = [
     111 # rpcbind
     2049 # nfs
@@ -226,6 +225,7 @@ in {
     51413 # transmission
     8020 # zigbee
     8080 # RTL stuff
+    1883 # mqtt
   ];
   networking.firewall.allowedUDPPorts = [
     111 # rpcbind
@@ -540,6 +540,33 @@ in {
       
       # Simple configuration
       compatibility_level = "3.6";
+    };
+  };
+
+  services.mosquitto = {
+    enable = true;
+    listeners = [{
+      port = 1883;
+      users.meshdev = {
+        passwordFile = config.sops.secrets.mosquitto-password.path;
+        acl = [ "readwrite #" ];
+      };
+      settings.allow_anonymous = false;
+    }];
+    
+    bridges.meshtastic_es = {
+      addresses = [{ address = "mqtt.meshtastic.es"; port = 1883; }];
+      topics = [
+        "msh/EU_868/# out 0 \"\" \"\""
+        "msh/EU_868/2/e/LasPalmas/# in 0 \"\" \"\""
+      ];
+      settings = {
+        cleansession = false;
+        notifications = false;
+        bridge_protocol_version = "mqttv50";
+        remote_username = "meshdev";
+        remote_password = "large4cats";  # public creds, fine as plaintext
+      };
     };
   };
 

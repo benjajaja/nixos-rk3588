@@ -7,6 +7,7 @@
   ...
 }: let
   domain = "qdice.wtf";
+
   clientConfig."m.homeserver".base_url = "https://${domain}";
   serverConfig."m.server" = "${domain}:443";
 in {
@@ -340,6 +341,16 @@ in {
         }
 
         reverse_proxy 127.0.0.1:8008
+      '';
+    };
+    virtualHosts."http://immich, http://immich.lan" = {
+      extraConfig = ''
+        reverse_proxy localhost:2283
+      '';
+    };
+    virtualHosts."http://ha, http://ha.lan" = {
+      extraConfig = ''
+        reverse_proxy localhost:8123
       '';
     };
   };

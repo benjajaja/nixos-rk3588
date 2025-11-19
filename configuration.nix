@@ -7,7 +7,6 @@
   ...
 }: let
   domain = "qdice.wtf";
-
   clientConfig."m.homeserver".base_url = "https://${domain}";
   serverConfig."m.server" = "${domain}:443";
 in {
@@ -341,23 +340,6 @@ in {
         }
 
         reverse_proxy 127.0.0.1:8008
-      '';
-    };
-    virtualHosts."photos.qdice.wtf" = {
-      extraConfig = ''
-        reverse_proxy localhost:2283
-      '';
-    };
-    virtualHosts."ha.qdice.wtf" = {
-      extraConfig = ''
-        reverse_proxy localhost:8123
-      '';
-    };
-    virtualHosts."matrix-admon.qdice.wtf" = {
-      extraConfig = ''
-        root * ${pkgs.synapse-admin}
-        file_server
-        try_files {path} /index.html
       '';
     };
   };

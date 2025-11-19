@@ -568,6 +568,19 @@ in {
         remote_password = "large4cats";  # public creds, fine as plaintext
       };
     };
+    bridges.meshtastic_org = {
+      addresses = [{ address = "mqtt.meshtastic.org"; port = 1883; }];
+      topics = [
+        "msh/EU_868/# out 0"
+      ];
+      settings = {
+        cleansession = true;
+        notifications = false;
+        bridge_protocol_version = "mqttv311";
+        remote_username = "meshdev";
+        remote_password = "large4cats";
+      };
+    };
   };
 
   system.stateVersion = "23.11";

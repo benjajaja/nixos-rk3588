@@ -17,6 +17,7 @@ in {
   # nix run nixpkgs#colmena apply -- --impure
 
   sops = import ./sops.nix;
+
   # Set your time zone.
   time.timeZone = "Atlantic/Canary";
 
@@ -93,6 +94,7 @@ in {
     rtl-sdr
     rtl-ais
     rtl_433
+    python313Packages.meshtastic
 
     # stop annoying $TERM complaints
     kitty.terminfo
@@ -574,6 +576,14 @@ in {
         remote_password = "large4cats";
       };
     };
+  };
+
+  services.meshmonitor = {
+    enable = true;
+    meshtasticNodeIP = "192.168.8.72";
+    allowedOrigins = [ "http://ops:3001" ];
+    adminPassword = "12345"; # wireguarded
+    openFirewall = true;
   };
 
   system.stateVersion = "23.11";

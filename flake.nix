@@ -6,15 +6,18 @@
     opifan.url = "github:benjajaja/opifancontrol?ref=main";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+    meshmonitor.url = "path:./meshmonitor";
+    meshmonitor.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = {
     nixpkgs,
     opifan,
     sops-nix,
+    meshmonitor,
     ...
   }: let
-    inherit nixpkgs opifan sops-nix;
+    inherit nixpkgs opifan sops-nix meshmonitor;
 
     # Possible values for compilationType: "local-native", "remote-native", or "cross".
     compilationType = "remote-native"; # Choose the compilation type here.
@@ -82,6 +85,7 @@
           bootloaderModule
           opifan.nixosModules.default
           sops-nix.nixosModules.sops
+          meshmonitor.nixosModules.default
 
           # Custom configuration
           ./configuration.nix

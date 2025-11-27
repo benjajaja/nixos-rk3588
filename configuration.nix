@@ -17,6 +17,7 @@ in {
   # nix run nixpkgs#colmena apply -- --impure
 
   sops = import ./sops.nix;
+
   # Set your time zone.
   time.timeZone = "Atlantic/Canary";
 
@@ -574,6 +575,13 @@ in {
         remote_password = "large4cats";
       };
     };
+  };
+
+  services.meshmonitor = {
+    enable = true;
+    meshtasticNodeIP = "192.168.8.71";
+    allowedOrigins = [ "http://ops:3001" ];
+    openFirewall = true;
   };
 
   system.stateVersion = "23.11";

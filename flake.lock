@@ -18,6 +18,22 @@
         "type": "github"
       }
     },
+    "meshmonitor": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "path": "./meshmonitor",
+        "type": "path"
+      },
+      "original": {
+        "path": "./meshmonitor",
+        "type": "path"
+      },
+      "parent": []
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1754689972,
@@ -70,6 +86,7 @@
     },
     "root": {
       "inputs": {
+        "meshmonitor": "meshmonitor",
         "nixpkgs": "nixpkgs",
         "opifan": "opifan",
         "sops-nix": "sops-nix"

@@ -90,7 +90,7 @@ in {
     ntfs3g
 
     # Radio
-    dump1090
+    dump1090-fa
     rtl-sdr
     rtl-ais
     rtl_433
@@ -232,6 +232,7 @@ in {
 
   services.transmission = {
     enable = true;
+    package = pkgs.transmission_4;
     openRPCPort = true;
     openPeerPorts = true;
     settings = {
@@ -368,6 +369,7 @@ in {
     environmentFile = config.sops.secrets.mautrix_whatsapp_env.path;
   };
   systemd.services.postgresql.postStart = ''
+    PSQL="${config.services.postgresql.package}/bin/psql -U postgres"
     DB_PASSWORD=$(cat ${config.sops.secrets.postgresql_synapse_password.path})
     $PSQL -tAc "SELECT 1 FROM pg_database WHERE datname='synapse'" | grep -q 1 || $PSQL -tAc "CREATE DATABASE synapse OWNER synapse ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' TEMPLATE template0"
     $PSQL -tAc "SELECT 1 FROM pg_roles WHERE rolname='synapse'" | grep -q 1 || $PSQL -tAc "CREATE USER synapse WITH PASSWORD '$DB_PASSWORD'"
@@ -459,7 +461,7 @@ in {
       inet_protocols = "ipv4";
       
       # Relay all mail directly to MailerSend (replaces msmtp)
-      relayhost = "[smtp-relay.brevo.com]:587";
+      relayhost = ["[smtp-relay.brevo.com]:587"];
       
       # SASL authentication for Postfix to authenticate TO MailerSend
       smtp_sasl_auth_enable = true;
@@ -473,7 +475,7 @@ in {
         "permit_mynetworks"
         "reject_unauth_destination"
       ];
-      mynetworks = "127.0.0.0/8";
+      mynetworks = ["127.0.0.0/8"];
       
       # Disable SMTP server authentication (clients don't need to auth to us)
       smtpd_sasl_auth_enable = false;

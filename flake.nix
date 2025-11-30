@@ -2,7 +2,7 @@
   description = "NixOS configuration for rk3588 remote deployment with UEFI and U-Boot options";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     opifan.url = "github:benjajaja/opifancontrol?ref=main";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";

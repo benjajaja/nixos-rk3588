@@ -32,6 +32,7 @@ in {
   users.groups = {
     "${username}" = {};
     docker = {};
+    media = {}; # transmission, sonarr, radarr...
   };
 
   security.sudo.extraConfig = ''

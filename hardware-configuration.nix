@@ -79,6 +79,12 @@
   };
 
   fileSystems."/srv/sdd" = {
+    device = "/dev/disk/by-uuid/44b8be4e-538d-4eea-a69b-b3effbba90a0";
+    fsType = "ext4";
+    options = ["nofail"];
+  };
+
+  fileSystems."/srv/sdd2" = {
     device = "/dev/disk/by-uuid/722C54791642E0EB";
     fsType = "ntfs";
     options = ["nofail"];

@@ -120,29 +120,25 @@ in {
   systemd.tmpfiles.rules = builtins.concatLists [
     # Type | Path | Mode | User | Group | Age | Argument
     [
-      "d /srv 0777 root users - -"
-      "d /srv/backup 0777 root users - -"
-      # "d /srv/media 0777 root users - -"
-      # "d /srv/media/torrents 0777 transmission users - -"
-      # "d /srv/media/torrents/radarr 0777 transmission users - -"
-      # "d /srv/media/torrents/sonarr 0777 transmission users - -"
+      "d /srv 0750 root users - -"
+      "d /srv/backup 0770 root users - -"
 
       # immich - this might be because of an initial mismatch between db and fs.
-      "d /srv/photos 0777 immich immich - -"
-      "d /srv/photos/encoded-video 0777 immich immich - -"
-      "f /srv/photos/encoded-video/.immich 0777 immich immich - -"
-      "d /srv/photos/library 0777 immich immich - -"
-      "f /srv/photos/library/.immich 0777 immich immich - -"
-      "d /srv/photos/upload 0777 immich immich - -"
-      "f /srv/photos/upload/.immich 0777 immich immich - -"
-      "d /srv/photos/profile 0777 immich immich - -"
-      "f /srv/photos/profile/.immich 0777 immich immich - -"
-      "d /srv/photos/thumbs 0777 immich immich - -"
-      "f /srv/photos/thumbs/.immich 0777 immich immich - -"
-      "d /srv/photos/backups 0777 immich immich - -"
-      "f /srv/photos/backups/.immich 0777 immich immich - -"
+      "d /srv/photos 0770 immich immich - -"
+      "d /srv/photos/encoded-video 0770 immich immich - -"
+      "f /srv/photos/encoded-video/.immich 0770 immich immich - -"
+      "d /srv/photos/library 0770 immich immich - -"
+      "f /srv/photos/library/.immich 0770 immich immich - -"
+      "d /srv/photos/upload 0770 immich immich - -"
+      "f /srv/photos/upload/.immich 0770 immich immich - -"
+      "d /srv/photos/profile 0770 immich immich - -"
+      "f /srv/photos/profile/.immich 0770 immich immich - -"
+      "d /srv/photos/thumbs 0770 immich immich - -"
+      "f /srv/photos/thumbs/.immich 0770 immich immich - -"
+      "d /srv/photos/backups 0770 immich immich - -"
+      "f /srv/photos/backups/.immich 0770 immich immich - -"
 
-      "d /var/lib/hass/zhaquirks 0755 hass hass -"
+      "d /var/lib/hass/zhaquirks 0754 hass hass -"
       "C /var/lib/hass/zhaquirks/esphome_particles_quirks.py 0644 hass hass - ${./esphome_particles_quirks.py}"
     ]
   ];
@@ -160,52 +156,7 @@ in {
     '';
   };
 
-  systemd.services.backup-sync = {
-    description = "Sync Pictures and Documents to backup disk";
-    conflicts = [ "matrix-synapse.service" ]; # Stop matrix on start.
-    script = ''
-      set -euo pipefail  # Exit on error, undefined variables, and pipe failures
-      
-      echo "Starting backup sync at $(date)"
-      
-      # For photos
-      echo "Backing up photos (quiet)..."
-      ${pkgs.rsync}/bin/rsync -a --delete /srv/photos/ /srv/sdd/backup/immich/photos/
-      
-      # For Matrix Synapse - safely backup the SQLite database
-      echo "Backing up Matrix Synapse database..."
-      # ${pkgs.sqlite}/bin/sqlite3 /var/lib/matrix-synapse/homeserver.db ".backup /tmp/homeserver_backup.db"
-      # ${pkgs.rsync}/bin/rsync -av --delete /tmp/homeserver_backup.db /srv/sdd/backup/matrix/
-      # rm /tmp/homeserver_backup.db
-      
-      # Backup other Matrix files
-      echo "Backing up Matrix Synapse secrets..."
-      ${pkgs.rsync}/bin/rsync -av --delete /var/lib/matrix-synapse/secrets /srv/sdd/backup/matrix/secrets/
-      
-      echo "Backing up Matrix Synapse media_store (quiet)..."
-      ${pkgs.rsync}/bin/rsync -a --delete /var/lib/matrix-synapse/media_store /srv/sdd/backup/matrix/media_store/
-      
-      echo "Backing up Matrix Synapse media_store (quiet)..."
-      ${pkgs.rsync}/bin/rsync -a --delete /var/lib/matrix-synapse/media_store /srv/sdd/backup/matrix/media_store/
-      
-      echo "Backup sync completed successfully at $(date)"
-    '';
-    serviceConfig = {
-      Type = "oneshot";
-      User = "root";  # Needed for Matrix Synapse files
-      Nice = 19;  # Low priority
-      IOSchedulingClass = "idle";  # Low I/O priority
-      StandardOutput = "journal";
-      StandardError = "journal";
-    };
-    # Ensure matrix-synapse is started again after backup completes
-    # (whether successful or failed)
-    unitConfig = {
-      OnSuccess = "matrix-synapse.service";
-      OnFailure = "matrix-synapse.service";
-    };
-  };
-
+  systemd.services.backup-sync = import ./backup.nix { inherit pkgs; };
   systemd.timers.backup-sync = {
     description = "Run backup sync daily";
     wantedBy = [ "timers.target" ];
@@ -294,20 +245,19 @@ in {
       "idle-seeding-limit" = 60;
       "idle-seeding-limit-enabled" = true;
     };
-    downloadDirPermissions = "770";
+    downloadDirPermissions = "775";
   };
   users.users.transmission = {
     isSystemUser = true;
-    extraGroups = ["users"]; # let it write (move files) to /srv/sdd
+    extraGroups = ["users" "media"];
   };
-
   services.sonarr = {
     enable = true;
     openFirewall = true;
     environmentFiles = [ config.sops.secrets.sonarr_env.path ];
   };
   users.users.sonarr = {
-    extraGroups = ["users" "transmission"];
+    extraGroups = ["users" "transmission" "media"];
   };
   services.radarr = {
     enable = true;
@@ -315,7 +265,7 @@ in {
     environmentFiles = [ config.sops.secrets.radarr_env.path ];
   };
   users.users.radarr = {
-    extraGroups = ["users" "transmission"];
+    extraGroups = ["users" "transmission" "media"];
   };
   services.prowlarr = {
     enable = true;
@@ -579,7 +529,7 @@ in {
   };
 
   services.meshmonitor = {
-    enable = true;
+    enable = false;
     meshtasticNodeIP = "192.168.8.72";
     allowedOrigins = [ "http://ops:3001" ];
     adminPassword = "12345"; # wireguarded

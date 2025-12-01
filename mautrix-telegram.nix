@@ -34,10 +34,11 @@
     # Requires MSC2409 support (i.e. Synapse 1.22+).
     # You should disable bridge -> sync_with_custom_puppets when this is enabled.
     ephemeral_events = true;
+    "org.matrix.msc3202" = true;
   };
 
   bridge = {
-    sync_with_custom_puppets = true;
+    sync_with_custom_puppets = false;
     sync_read_receipts = true;
     sync_direct_chat_list = true;
     delivery_receipts = true;
@@ -47,8 +48,16 @@
     double_puppet_allow_discovery = true;
     encryption = {
       allow = true;
-      default = false;
+      default = true;
       require = false;
+      pickle_key = "$MAUTRIX_TELEGRAM_ENCRYPTION_PICKLE_KEY";
+      msc4190 = true;
+      verification_levels = {
+        receive = "unverified";
+        send = "unverified";
+        share = "cross-signed-tofu";
+      };
+      allow_key_sharing = true;
     };
 
     # puppet_power_level = 50;

@@ -89,9 +89,10 @@
   experimental_features = {
     msc2409_to_device_messages_enabled = true;
     msc3202_device_masquerading = true;
+    msc3202_transaction_extensions = true;
     msc3391_phantom_receipt_enabled = true;
   };
-  
+
   allow_application_service_read_markers = true;
   enable_admin_api = true;
 }

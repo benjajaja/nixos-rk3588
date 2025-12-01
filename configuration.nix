@@ -274,6 +274,8 @@ in {
     environmentFiles = [ config.sops.secrets.prowlarr_env.path ];
   };
 
+  users.users.hass.extraGroups = ["users"];
+
   services.caddy = {
     enable = true;
     virtualHosts."qdice.wtf" = {

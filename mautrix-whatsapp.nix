@@ -16,6 +16,7 @@
       avatar = "mxc://maunium.net/NeXNQarUbrlYBiPCpprYsRqr";
     };
     ephemeral_events = true;
+    "org.matrix.msc3202" = true;
   };
 
   database = {
@@ -33,13 +34,21 @@
     relay = {
       enabled = false;
     };
+    personal_filtering_spaces = false;
   };
 
   encryption = {
     allow = true;
-    default = false;
+    default = true;
     require = false;
     pickle_key = "$MAUTRIX_WHATSAPP_ENCRYPTION_PICKLE_KEY";
+    msc4190 = true;
+    verification = {
+      receive = "unverified";
+      send = "unverified";
+      share = "cross-signed-tofu";
+    };
+    allow_key_sharing = true;
   };
 
   network = {
@@ -49,6 +58,7 @@
     };
     call_start_notices = true;
     identity_change_notices = true;
+    enable_status_broadcast = false;
   };
 
   double_puppet = {

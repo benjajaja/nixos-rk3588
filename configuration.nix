@@ -120,7 +120,7 @@ in {
   systemd.tmpfiles.rules = builtins.concatLists [
     # Type | Path | Mode | User | Group | Age | Argument
     [
-      "d /srv 0750 root users - -"
+      "d /srv 0770 root users - -"
       "d /srv/backup 0770 root users - -"
 
       # immich - this might be because of an initial mismatch between db and fs.
@@ -417,6 +417,15 @@ in {
       history = {};
       zha = {
         zigpy_config = {
+          ota = {
+            extra_providers = [
+              {
+                type = "advanced";
+                warning = "I understand I can *destroy* my devices by enabling OTA updates from files. Some OTA updates can be mistakenly applied to the wrong device, breaking it. I am consciously using this at my own risk.";
+                path = "/var/lib/hass/zigpy_ota";
+              }
+            ];
+          };
           serial = {
             port = "socket://slzb-06.lan:6638";
             baudrate = 115200;

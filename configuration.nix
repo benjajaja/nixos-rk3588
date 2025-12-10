@@ -120,7 +120,7 @@ in {
   systemd.tmpfiles.rules = builtins.concatLists [
     # Type | Path | Mode | User | Group | Age | Argument
     [
-      "d /srv 0770 root users - -"
+      "d /srv 0775 root users - -"
       "d /srv/backup 0770 root users - -"
 
       # immich - this might be because of an initial mismatch between db and fs.
@@ -150,9 +150,9 @@ in {
     statdPort = 4000;
     exports = ''
       /srv         192.168.8.0/24(rw,fsid=0,no_subtree_check,no_root_squash,insecure)
-      /srv/backup  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash,insecure)
-      /srv/photos  192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash,insecure)
-      /srv/sdd     192.168.8.0/24(rw,nohide,insecure,no_subtree_check,no_root_squash,insecure)
+      /srv/backup  192.168.8.0/24(rw,nohide,crossmnt,no_subtree_check,no_root_squash,insecure)
+      /srv/photos  192.168.8.0/24(rw,nohide,crossmnt,no_subtree_check,no_root_squash,insecure)
+      /srv/sdd     192.168.8.0/24(rw,nohide,crossmnt,no_subtree_check,no_root_squash,insecure)
     '';
   };
 
@@ -237,6 +237,7 @@ in {
     openPeerPorts = true;
     settings = {
       "download-dir" = "/srv/sdd/transmission";
+      "incomplete-dir-enabled" = false;
       "rpc-bind-address" = "0.0.0.0";
       "rpc-authentication-required" = false;
       "rpc-host-whitelist-enabled" = false;

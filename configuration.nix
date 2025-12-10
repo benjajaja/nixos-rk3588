@@ -544,7 +544,7 @@ in {
 
   services.meshmonitor = {
     enable = false;
-    meshtasticNodeIP = "192.168.8.72";
+    meshtasticNodeIP = "192.168.8.74";
     allowedOrigins = [ "http://ops:3001" ];
     adminPassword = "12345"; # wireguarded
     openFirewall = true;

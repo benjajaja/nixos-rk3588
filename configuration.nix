@@ -180,6 +180,7 @@ in {
     8020 # zigbee
     8080 # RTL stuff
     1883 # mqtt
+    41447 # potato-mesh
   ];
   networking.firewall.allowedUDPPorts = [
     111 # rpcbind
@@ -298,6 +299,11 @@ in {
         }
 
         reverse_proxy 127.0.0.1:8008
+      '';
+    };
+    virtualHosts."mesh.qdice.wtf" = {
+      extraConfig = ''
+        reverse_proxy 127.0.0.1:41447
       '';
     };
     virtualHosts."http://immich, http://immich.lan" = {
@@ -543,12 +549,18 @@ in {
     };
   };
 
-  services.meshmonitor = {
-    enable = false;
-    meshtasticNodeIP = "192.168.8.74";
-    allowedOrigins = [ "http://ops:3001" ];
-    adminPassword = "12345"; # wireguarded
-    openFirewall = true;
+  services.potato-mesh = {
+    enable = true;
+    apiTokenFile = config.sops.secrets.potato-mesh-api-token.path;
+    instanceDomain = "https://mesh.qdice.wtf";
+    siteName = "LZ Mesh";
+    contactLink = "#lzmesh:qdice.wtf";
+    mapCenter = "28.96,-13.56";
+    frequency = "868MHz";
+    ingestor = {
+      enable = true;
+      connection = "192.168.8.74:4403";
+    };
   };
 
   system.stateVersion = "23.11";

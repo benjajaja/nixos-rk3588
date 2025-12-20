@@ -66,6 +66,11 @@
       owner = "mosquitto";
       group = "mosquitto";
     };
+    potato-mesh-api-token = {
+      owner = "potato-mesh";
+      group = "potato-mesh";
+      mode = "0400";
+    };
   };
 }
 

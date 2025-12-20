@@ -59,6 +59,7 @@ in {
     socat # replacement of openbsd-netcat
     tcpdump # A powerful command-line packet analyzer
     htop
+    btop
     ncdu
     busybox
     file

@@ -181,6 +181,7 @@ in {
     8080 # RTL stuff
     1883 # mqtt
     41447 # potato-mesh
+    9000 # mealie
   ];
   networking.firewall.allowedUDPPorts = [
     111 # rpcbind
@@ -561,6 +562,17 @@ in {
       enable = true;
       connection = "192.168.8.74:4403";
     };
+  };
+
+  services.mealie = {
+    enable = true;
+    credentialsFile = config.sops.secrets.mealie.path;
+  };
+
+  systemd.services.mealie.serviceConfig = {
+    DynamicUser = lib.mkForce false;
+    User = "mealie";
+    Group = "mealie";
   };
 
   system.stateVersion = "23.11";

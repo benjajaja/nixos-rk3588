@@ -71,6 +71,11 @@
       group = "potato-mesh";
       mode = "0400";
     };
+    mealie = {
+      owner = "mealie";
+      group = "mealie";
+      mode = "0400";
+    };
   };
 }
 

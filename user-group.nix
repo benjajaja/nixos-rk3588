@@ -29,10 +29,16 @@ in {
     laptopPublicKey
   ];
 
+  users.users.mealie = {
+    isSystemUser = true;
+    group = "mealie";
+  };
+
   users.groups = {
     "${username}" = {};
     docker = {};
     media = {}; # transmission, sonarr, radarr...
+    mealie = {};
   };
 
   security.sudo.extraConfig = ''

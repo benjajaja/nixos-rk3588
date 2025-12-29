@@ -551,7 +551,7 @@ in {
 
   services.potato-mesh = {
     enable = true;
-    apiTokenFile = config.sops.secrets.potato-mesh-api-token.path;
+    apiTokenFile = config.sops.secrets.potato-mesh.path;
     instanceDomain = "https://mesh.qdice.wtf";
     siteName = "LZ Mesh";
     contactLink = "#lzmesh:qdice.wtf";

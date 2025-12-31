@@ -312,12 +312,22 @@ in {
         reverse_proxy localhost:2283
       '';
     };
-    virtualHosts."http://ha, http://ha.lan" = {
+    virtualHosts."ha.ops" = {
       extraConfig = ''
         reverse_proxy localhost:8123
       '';
     };
+    virtualHosts."vault.ops" = {
+      extraConfig = ''
+        tls internal
+        reverse_proxy /notifications/hub 127.0.0.1:3012
+        reverse_proxy 127.0.0.1:8222 {
+          header_up X-Real-IP {remote_host}
+        }
+      '';
+    };
   };
+  # security.pki.certificateFiles = [ "/var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt" ];
 
   services.opifancontrol = {
     enable = true;
@@ -573,6 +583,22 @@ in {
     DynamicUser = lib.mkForce false;
     User = "mealie";
     Group = "mealie";
+  };
+
+  services.vaultwarden = {
+    enable = true;
+    backupDir = "/var/lib/vaultwarden";  # backup!
+    config = {
+      DOMAIN = "https://vault.ops";
+      SIGNUPS_ALLOWED = true;  # disable after creating your account
+
+      ROCKET_ADDRESS = "127.0.0.1";
+      ROCKET_PORT = 8222;
+
+      WEBSOCKET_ENABLED = true;
+      WEBSOCKET_ADDRESS = "127.0.0.1";
+      WEBSOCKET_PORT = 3012;
+    };
   };
 
   system.stateVersion = "23.11";

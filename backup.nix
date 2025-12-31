@@ -10,6 +10,9 @@ in
     
     echo "Starting backup sync to ${backupDir} at $(date)"
 
+    echo "Backing up vaultwarden..."
+    ${pkgs.rsync}/bin/rsync -a --delete --mkpath /var/lib/vaultwarden/ ${backupDir}/vaultwarden/
+
     echo "Backing up backups share (quiet)..."
     ${pkgs.rsync}/bin/rsync -a --delete --mkpath /srv/backup/ ${backupDir}/backup/
 

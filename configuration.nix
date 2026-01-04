@@ -312,18 +312,23 @@ in {
         reverse_proxy localhost:2283
       '';
     };
-    virtualHosts."ha.ops" = {
+    virtualHosts."home.qdice.wtf" = {
       extraConfig = ''
         reverse_proxy localhost:8123
       '';
     };
-    virtualHosts."vault.ops" = {
+    virtualHosts."vault.ops, vault.home.qdice.wtf" = {
       extraConfig = ''
         tls internal
         reverse_proxy /notifications/hub 127.0.0.1:3012
         reverse_proxy 127.0.0.1:8222 {
           header_up X-Real-IP {remote_host}
         }
+      '';
+    };
+    virtualHosts."mealie.home.qdice.wtf" = {
+      extraConfig = ''
+        reverse_proxy localhost:9000
       '';
     };
   };
@@ -583,6 +588,25 @@ in {
     DynamicUser = lib.mkForce false;
     User = "mealie";
     Group = "mealie";
+  };
+
+  # DDNS using ddns-updater (Porkbun-recommended client)
+  systemd.services.ddns-updater = {
+    description = "DDNS Updater";
+    after = [ "network-online.target" "sops-nix.service" ];
+    wants = [ "network-online.target" "sops-nix.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      ExecStart = "${pkgs.ddns-updater}/bin/ddns-updater";
+      Environment = [
+        "CONFIG_FILEPATH=${config.sops.secrets.ddns-updater.path}"
+        "PERIOD=5m"
+        "DATADIR=/var/lib/ddns-updater"
+        "RESOLVER_ADDRESS=1.1.1.1:53"
+      ];
+      StateDirectory = "ddns-updater";
+      WorkingDirectory = "/var/lib/ddns-updater";
+    };
   };
 
   services.vaultwarden = {

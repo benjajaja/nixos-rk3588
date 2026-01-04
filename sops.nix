@@ -76,6 +76,9 @@
       group = "mealie";
       mode = "0400";
     };
+    ddns-updater = {
+      mode = "0400";
+    };
   };
 }
 

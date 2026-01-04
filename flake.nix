@@ -6,7 +6,7 @@
     opifan.url = "github:benjajaja/opifancontrol?ref=main";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-    potato-mesh.url = "github:benjajaja/potato-mesh";
+    potato-mesh.url = "github:l5yth/potato-mesh";
     potato-mesh.inputs.nixpkgs.follows = "nixpkgs";
   };
 

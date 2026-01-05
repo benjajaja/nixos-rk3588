@@ -282,6 +282,11 @@ in {
 
   services.caddy = {
     enable = true;
+    package = pkgs.caddy.withPlugins {
+      plugins = [ "github.com/caddy-dns/porkbun@v0.3.1" ];
+      hash = "sha256-aVSE8y9Bt+XS7+M27Ua+ewxRIcX51PuFu4+mqKbWFwo=";
+    };
+    # public
     virtualHosts."qdice.wtf" = {
       extraConfig = ''
         handle / {
@@ -302,23 +307,26 @@ in {
         reverse_proxy 127.0.0.1:8008
       '';
     };
+    virtualHosts."immich.qdice.wtf" = {
+      extraConfig = ''
+        reverse_proxy localhost:2283
+      '';
+    };
     virtualHosts."mesh.qdice.wtf" = {
       extraConfig = ''
         reverse_proxy 127.0.0.1:41447
       '';
     };
-    virtualHosts."http://immich, http://immich.lan" = {
+    # private
+    virtualHosts."ha.qdice.wtf" = {
       extraConfig = ''
-        reverse_proxy localhost:2283
-      '';
-    };
-    virtualHosts."home.qdice.wtf" = {
-      extraConfig = ''
+        bind 192.168.8.50
         reverse_proxy localhost:8123
       '';
     };
-    virtualHosts."vault.ops, vault.home.qdice.wtf" = {
+    virtualHosts."vault.ops, vault.qdice.wtf" = {
       extraConfig = ''
+        bind 192.168.8.50
         tls internal
         reverse_proxy /notifications/hub 127.0.0.1:3012
         reverse_proxy 127.0.0.1:8222 {
@@ -326,11 +334,23 @@ in {
         }
       '';
     };
-    virtualHosts."mealie.home.qdice.wtf" = {
+    virtualHosts."mealie.qdice.wtf" = {
       extraConfig = ''
+        bind 192.168.8.50
+        tls {
+          dns porkbun {
+            api_key pk1_fba0654306e858025efab211cf8ebaa97cc69a13cc33902098ee5acc64c8602f
+            api_secret_key {env.PORKBUN_SECRET}
+          }
+        }
         reverse_proxy localhost:9000
       '';
     };
+  };
+  systemd.services.caddy = {
+    after = [ "sops-nix.service" ];
+    wants = [ "sops-nix.service" ];
+    serviceConfig.EnvironmentFile = config.sops.secrets.porkbun_secret.path;
   };
   # security.pki.certificateFiles = [ "/var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt" ];
 

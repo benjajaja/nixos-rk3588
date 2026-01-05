@@ -79,6 +79,9 @@
     ddns-updater = {
       mode = "0400";
     };
+    porkbun_secret = {
+      mode = "0400";
+    };
   };
 }
 

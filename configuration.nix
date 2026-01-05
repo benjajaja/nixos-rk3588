@@ -7,9 +7,31 @@
   ...
 }: let
   domain = "qdice.wtf";
+  porkbunApiKey = "pk1_fba0654306e858025efab211cf8ebaa97cc69a13cc33902098ee5acc64c8602f"; # public key, private/secure key is in sops
 
   clientConfig."m.homeserver".base_url = "https://${domain}";
   serverConfig."m.server" = "${domain}:443";
+
+  # Helper for private virtual hosts with DNS challenge TLS and IP filtering
+  makePrivateHost = name: proxyConfig: {
+    "${name}.${domain}" = {
+      extraConfig = ''
+        tls {
+          dns porkbun {
+            api_key ${porkbunApiKey}
+            api_secret_key {env.PORKBUN_SECRET}
+          }
+        }
+        @local remote_ip 192.168.0.0/16 10.0.0.0/8 127.0.0.1
+        handle @local {
+          ${proxyConfig}
+        }
+        handle {
+          respond 403
+        }
+      '';
+    };
+  };
 in {
   # =========================================================================
   #      Base NixOS Configuration
@@ -286,66 +308,50 @@ in {
       plugins = [ "github.com/caddy-dns/porkbun@v0.3.1" ];
       hash = "sha256-aVSE8y9Bt+XS7+M27Ua+ewxRIcX51PuFu4+mqKbWFwo=";
     };
-    # public
-    virtualHosts."qdice.wtf" = {
-      extraConfig = ''
-        handle / {
-          respond 503
-        }
-        handle_path /.well-known/matrix/server {
-          header Content-Type application/json
-          header Access-Control-Allow-Origin *
-          respond `${builtins.toJSON serverConfig}` 200
-        }
-
-        handle_path /.well-known/matrix/client {
-          header Content-Type application/json
-          header Access-Control-Allow-Origin *
-          respond `${builtins.toJSON clientConfig}` 200
-        }
-
-        reverse_proxy 127.0.0.1:8008
-      '';
-    };
-    virtualHosts."immich.qdice.wtf" = {
-      extraConfig = ''
-        reverse_proxy localhost:2283
-      '';
-    };
-    virtualHosts."mesh.qdice.wtf" = {
-      extraConfig = ''
-        reverse_proxy 127.0.0.1:41447
-      '';
-    };
-    # private
-    virtualHosts."ha.qdice.wtf" = {
-      extraConfig = ''
-        bind 192.168.8.50
-        reverse_proxy localhost:8123
-      '';
-    };
-    virtualHosts."vault.ops, vault.qdice.wtf" = {
-      extraConfig = ''
-        bind 192.168.8.50
-        tls internal
-        reverse_proxy /notifications/hub 127.0.0.1:3012
-        reverse_proxy 127.0.0.1:8222 {
-          header_up X-Real-IP {remote_host}
-        }
-      '';
-    };
-    virtualHosts."mealie.qdice.wtf" = {
-      extraConfig = ''
-        bind 192.168.8.50
-        tls {
-          dns porkbun {
-            api_key pk1_fba0654306e858025efab211cf8ebaa97cc69a13cc33902098ee5acc64c8602f
-            api_secret_key {env.PORKBUN_SECRET}
+    virtualHosts = {
+      # public
+      "qdice.wtf" = {
+        extraConfig = ''
+          handle / {
+            respond 503
           }
-        }
-        reverse_proxy localhost:9000
-      '';
-    };
+          handle_path /.well-known/matrix/server {
+            header Content-Type application/json
+            header Access-Control-Allow-Origin *
+            respond `${builtins.toJSON serverConfig}` 200
+          }
+
+          handle_path /.well-known/matrix/client {
+            header Content-Type application/json
+            header Access-Control-Allow-Origin *
+            respond `${builtins.toJSON clientConfig}` 200
+          }
+
+          reverse_proxy 127.0.0.1:8008
+        '';
+      };
+      "immich.qdice.wtf" = {
+        extraConfig = ''
+          reverse_proxy localhost:2283
+        '';
+      };
+      "mesh.qdice.wtf" = {
+        extraConfig = ''
+          reverse_proxy 127.0.0.1:41447
+        '';
+      };
+    }
+    # private
+    // makePrivateHost "ha" "reverse_proxy localhost:8123"
+    // makePrivateHost "vault" ''
+      reverse_proxy 127.0.0.1:8222 {
+        header_up X-Real-IP {remote_host}
+      }
+    ''
+    // makePrivateHost "mealie" "reverse_proxy localhost:9000"
+    // makePrivateHost "sonarr" "reverse_proxy localhost:8989"
+    // makePrivateHost "radarr" "reverse_proxy localhost:7878"
+    // makePrivateHost "transmission" "reverse_proxy localhost:9091";
   };
   systemd.services.caddy = {
     after = [ "sops-nix.service" ];
@@ -595,7 +601,7 @@ in {
     frequency = "868MHz";
     ingestor = {
       enable = true;
-      connection = "192.168.8.74:4403";
+      connection = "192.168.8.75:4403";
     };
   };
 
@@ -633,15 +639,11 @@ in {
     enable = true;
     backupDir = "/var/lib/vaultwarden";  # backup!
     config = {
-      DOMAIN = "https://vault.ops";
-      SIGNUPS_ALLOWED = true;  # disable after creating your account
+      DOMAIN = "https://vault.qdice.wtf";
+      SIGNUPS_ALLOWED = false; # only enable for initial signup
 
       ROCKET_ADDRESS = "127.0.0.1";
       ROCKET_PORT = 8222;
-
-      WEBSOCKET_ENABLED = true;
-      WEBSOCKET_ADDRESS = "127.0.0.1";
-      WEBSOCKET_PORT = 3012;
     };
   };
 

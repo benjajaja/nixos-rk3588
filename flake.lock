@@ -94,11 +94,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1767190518,
-        "narHash": "sha256-JDvfUOT8CTFGM/G7vbZL9K8JykJZN0nD0LE+IvAj5ls=",
+        "lastModified": 1767946345,
+        "narHash": "sha256-GfJoZFpArXbQ7QPvFZAZo5ixu0VL1l0yCF3VVWFCPSM=",
         "owner": "l5yth",
         "repo": "potato-mesh",
-        "rev": "6fd8e5ad12423dd6cf22523c704037bc68dfbb47",
+        "rev": "d7a636251df6c373768fc0883e469d020dabd546",
         "type": "github"
       },
       "original": {

@@ -1,3 +1,4 @@
+{ pkgs, ... }:
 let
   username = "gipsy";
   hostName = "ops";
@@ -25,9 +26,12 @@ in {
     ];
   };
 
-  users.users.root.openssh.authorizedKeys.keys = [
-    laptopPublicKey
-  ];
+  users.users.root = {
+    shell = pkgs.fish;
+    openssh.authorizedKeys.keys = [
+      laptopPublicKey
+    ];
+  };
 
   users.users.mealie = {
     isSystemUser = true;

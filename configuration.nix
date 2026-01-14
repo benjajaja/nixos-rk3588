@@ -225,6 +225,7 @@ in {
         set vi-ins-mode-string "\1\e[6 q\2"
       '';
     };
+    fish.enable = true;
   };
 
   systemd.services.led-control = {

@@ -352,7 +352,8 @@ in {
     // makePrivateHost "mealie" "reverse_proxy localhost:9000"
     // makePrivateHost "sonarr" "reverse_proxy localhost:8989"
     // makePrivateHost "radarr" "reverse_proxy localhost:7878"
-    // makePrivateHost "transmission" "reverse_proxy localhost:9091";
+    // makePrivateHost "transmission" "reverse_proxy localhost:9091"
+    // makePrivateHost "cockpit" "reverse_proxy localhost:9090";
   };
   systemd.services.caddy = {
     after = [ "sops-nix.service" ];
@@ -503,6 +504,13 @@ in {
   services.glances = {
     enable = true;
     openFirewall = true;
+  };
+
+  services.cockpit = {
+    enable = true;
+    openFirewall = true;
+    port = 9090;
+    settings.WebService.Origins = lib.mkForce "https://cockpit.qdice.wtf https://localhost:9090";
   };
 
   nixpkgs.config.permittedInsecurePackages = [

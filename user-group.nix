@@ -35,11 +35,14 @@ in {
     group = "mealie";
   };
 
+  users.mutableUsers = false;
+
   users.groups = {
     "${username}" = {};
     docker = {};
     media = {}; # transmission, sonarr, radarr...
     mealie = {};
+    plugdev = {}; # for rtl-sdr udev rules
   };
 
   security.sudo.extraConfig = ''

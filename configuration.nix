@@ -101,8 +101,8 @@ in {
     # misc
     stress-ng
     lm_sensors
-    opifan.packages.${pkgs.system}.wiringOP
-    opifan.packages.${pkgs.system}.opifancontrol
+    opifan.packages.${pkgs.stdenv.hostPlatform.system}.wiringOP
+    opifan.packages.${pkgs.stdenv.hostPlatform.system}.opifancontrol
     fastfetch
     sqlite
     mailutils

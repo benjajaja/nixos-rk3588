@@ -82,6 +82,10 @@
     porkbun_secret = {
       mode = "0400";
     };
+    gipsy_hashed_password = {
+      mode = "0400";
+      neededForUsers = true;
+    };
   };
 }
 

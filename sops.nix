@@ -15,6 +15,13 @@
       owner = "mosquitto";
       group = "mosquitto";
     };
+    meshstellar-env = {
+      sopsFile = ./secrets/api_keys.yaml;
+      owner = "meshstellar";
+      group = "meshstellar";
+      mode = "0400";
+      restartUnits = [ "meshstellar.service" ];
+    };
     ddns-updater = {
       mode = "0400";
     };

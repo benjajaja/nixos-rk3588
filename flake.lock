@@ -36,7 +36,41 @@
         "type": "github"
       }
     },
+    "meshstellar": {
+      "inputs": {
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1768845809,
+        "narHash": "sha256-J9iqfdLSy329qjmeY0e/iWk7aGx1DQHWMQyLNmwVecA=",
+        "ref": "refs/heads/flake.nix",
+        "rev": "fe5b95437bec602f31f19000180f0380b7c66806",
+        "revCount": 153,
+        "type": "git",
+        "url": "file:///home/gipsy/o/meshstellar"
+      },
+      "original": {
+        "type": "git",
+        "url": "file:///home/gipsy/o/meshstellar"
+      }
+    },
     "nixpkgs": {
+      "locked": {
+        "lastModified": 1768028080,
+        "narHash": "sha256-50aDK+8eLvsLK39TzQhKNq50/HcXyP4hyxOYoPoVxjo=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "d03088749a110d52a4739348f39a63f84bb0be14",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-25.11",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
       "locked": {
         "lastModified": 1764522689,
         "narHash": "sha256-SqUuBFjhl/kpDiVaKLQBoD8TLD+/cTUzzgVFoaHrkqY=",
@@ -52,7 +86,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_2": {
+    "nixpkgs_3": {
       "locked": {
         "lastModified": 1752012998,
         "narHash": "sha256-Q82Ms+FQmgOBkdoSVm+FBpuFoeUAffNerR5yVV7SgT8=",
@@ -69,7 +103,7 @@
     "opifan": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs_3"
       },
       "locked": {
         "lastModified": 1752653413,
@@ -109,7 +143,8 @@
     },
     "root": {
       "inputs": {
-        "nixpkgs": "nixpkgs",
+        "meshstellar": "meshstellar",
+        "nixpkgs": "nixpkgs_2",
         "opifan": "opifan",
         "potato-mesh": "potato-mesh",
         "sops-nix": "sops-nix"

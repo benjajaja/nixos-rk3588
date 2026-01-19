@@ -341,6 +341,11 @@ in {
           reverse_proxy 127.0.0.1:41447
         '';
       };
+      "meshstellar.qdice.wtf" = {
+        extraConfig = ''
+          reverse_proxy 127.0.0.1:3000
+        '';
+      };
     }
     # private
     // makePrivateHost "ha" "reverse_proxy localhost:8123"
@@ -611,6 +616,16 @@ in {
     ingestor = {
       enable = true;
       connection = "192.168.8.75:4403";
+    };
+  };
+
+  services.meshstellar = {
+    enable = true;
+    environmentFile = config.sops.secrets.meshstellar-env.path;
+    settings = {
+      mqtt_host = "127.0.0.1";
+      mqtt_username = "meshdev";
+      mqtt_topic = "msh/EU_868/#";
     };
   };
 

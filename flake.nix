@@ -8,6 +8,7 @@
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
     potato-mesh.url = "github:l5yth/potato-mesh";
     potato-mesh.inputs.nixpkgs.follows = "nixpkgs";
+    meshstellar.url = "git+file:///home/gipsy/o/meshstellar";
   };
 
   outputs = {
@@ -15,9 +16,10 @@
     opifan,
     sops-nix,
     potato-mesh,
+    meshstellar,
     ...
   }: let
-    inherit nixpkgs opifan sops-nix potato-mesh;
+    inherit nixpkgs opifan sops-nix potato-mesh meshstellar;
 
     # Possible values for compilationType: "local-native", "remote-native", or "cross".
     compilationType = "remote-native"; # Choose the compilation type here.
@@ -60,7 +62,7 @@
           system = localSystem;
         };
         specialArgs = {
-          inherit nixpkgs opifan;
+          inherit nixpkgs opifan meshstellar;
         };
       };
 
@@ -86,6 +88,7 @@
           opifan.nixosModules.default
           sops-nix.nixosModules.sops
           potato-mesh.nixosModules.default
+          meshstellar.nixosModules.default
 
           # Custom configuration
           ./configuration.nix

@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-25.11";
     opifan.url = "github:benjajaja/opifancontrol?ref=main";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
@@ -13,13 +14,14 @@
 
   outputs = {
     nixpkgs,
+    nixpkgs-unstable,
     opifan,
     sops-nix,
     potato-mesh,
     meshstellar,
     ...
   }: let
-    inherit nixpkgs opifan sops-nix potato-mesh meshstellar;
+    inherit nixpkgs nixpkgs-unstable opifan sops-nix potato-mesh meshstellar;
 
     # Possible values for compilationType: "local-native", "remote-native", or "cross".
     compilationType = "remote-native"; # Choose the compilation type here.
@@ -54,6 +56,10 @@
         };
       };
     };
+    pkgs-unstable = import nixpkgs-unstable {
+      system = targetSystem;
+      config.allowUnfree = true;
+    };
 
   in {
     colmena = {
@@ -62,7 +68,7 @@
           system = localSystem;
         };
         specialArgs = {
-          inherit nixpkgs opifan meshstellar;
+          inherit nixpkgs pkgs-unstable opifan meshstellar;
         };
       };
 

@@ -3,6 +3,7 @@
   lib,
   pkgs,
   nixpkgs,
+  pkgs-unstable,
   opifan,
   ...
 }: let
@@ -661,6 +662,7 @@ in {
 
   services.vaultwarden = {
     enable = true;
+    package = pkgs-unstable.pkgs.vaultwarden;
     backupDir = "/var/lib/vaultwarden";  # backup!
     config = {
       DOMAIN = "https://vault.qdice.wtf";

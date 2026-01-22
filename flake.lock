@@ -70,6 +70,22 @@
         "type": "github"
       }
     },
+    "nixpkgs-unstable": {
+      "locked": {
+        "lastModified": 1768773494,
+        "narHash": "sha256-XsM7GP3jHlephymxhDE+/TKKO1Q16phz/vQiLBGhpF4=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "77ef7a29d276c6d8303aece3444d61118ef71ac2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-25.11",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixpkgs_2": {
       "locked": {
         "lastModified": 1764522689,
@@ -145,6 +161,7 @@
       "inputs": {
         "meshstellar": "meshstellar",
         "nixpkgs": "nixpkgs_2",
+        "nixpkgs-unstable": "nixpkgs-unstable",
         "opifan": "opifan",
         "potato-mesh": "potato-mesh",
         "sops-nix": "sops-nix"

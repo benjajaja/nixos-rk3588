@@ -49,12 +49,12 @@
       mode = "0400";
       restartUnits = [ "prowlarr.service" "home-assistant.service" ];
     };
-    potato-mesh = {
-      sopsFile = ./secrets/api_keys.yaml;
-      owner = "potato-mesh";
-      group = "potato-mesh";
-      mode = "0400";
-    };
+    # potato-mesh = {
+      # sopsFile = ./secrets/api_keys.yaml;
+      # owner = "potato-mesh";
+      # group = "potato-mesh";
+      # mode = "0400";
+    # };
     mealie = {
       sopsFile = ./secrets/api_keys.yaml;
       owner = "mealie";

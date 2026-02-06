@@ -337,12 +337,12 @@ in {
           reverse_proxy localhost:2283
         '';
       };
+      # "mesh.qdice.wtf" = {
+        # extraConfig = ''
+          # reverse_proxy 127.0.0.1:41447
+        # '';
+      # };
       "mesh.qdice.wtf" = {
-        extraConfig = ''
-          reverse_proxy 127.0.0.1:41447
-        '';
-      };
-      "meshstellar.qdice.wtf" = {
         extraConfig = ''
           reverse_proxy 127.0.0.1:3000
         '';
@@ -607,7 +607,7 @@ in {
   };
 
   services.potato-mesh = {
-    enable = true;
+    enable = false;
     apiTokenFile = config.sops.secrets.potato-mesh.path;
     instanceDomain = "https://mesh.qdice.wtf";
     siteName = "LZ Mesh";

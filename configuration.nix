@@ -585,19 +585,32 @@ in {
 
   services.mosquitto = {
     enable = true;
-    listeners = [{
-      port = 8883;
-      settings = {
-        certfile = "/var/lib/acme/mqtt.qdice.wtf/cert.pem";
-        keyfile = "/var/lib/acme/mqtt.qdice.wtf/key.pem";
-        cafile = "/var/lib/acme/mqtt.qdice.wtf/chain.pem";
-      };
-      users.meshdev = {
-        passwordFile = config.sops.secrets.mosquitto-password.path;
-        acl = [ "write msh/EU_868/#" ];
-      };
-      settings.allow_anonymous = false;
-    }];
+    listeners = [
+      # TLS listener for external connections
+      {
+        port = 8883;
+        settings = {
+          certfile = "/var/lib/acme/mqtt.qdice.wtf/cert.pem";
+          keyfile = "/var/lib/acme/mqtt.qdice.wtf/key.pem";
+          cafile = "/var/lib/acme/mqtt.qdice.wtf/chain.pem";
+        };
+        users.meshdev = {
+          passwordFile = config.sops.secrets.mosquitto-password.path;
+          acl = [ "write msh/EU_868/#" ];
+        };
+        settings.allow_anonymous = false;
+      }
+      # Local plaintext listener for meshstellar/internal services
+      {
+        port = 1883;
+        address = "127.0.0.1";
+        users.meshdev = {
+          passwordFile = config.sops.secrets.mosquitto-password.path;
+          acl = [ "readwrite msh/EU_868/#" ];
+        };
+        settings.allow_anonymous = false;
+      }
+    ];
 
     bridges.meshtastic_es = {
       addresses = [{ address = "mqtt.meshtastic.es"; port = 1883; }];

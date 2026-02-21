@@ -29,6 +29,8 @@ in {
     shell = pkgs.fish;
     openssh.authorizedKeys.keys = [
       laptopPublicKey
+      phonePublicKey
+      lzPublicKey
     ];
   };
 

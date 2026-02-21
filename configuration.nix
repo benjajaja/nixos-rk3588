@@ -8,7 +8,6 @@
   ...
 }: let
   domain = "qdice.wtf";
-  porkbunApiKey = "pk1_fba0654306e858025efab211cf8ebaa97cc69a13cc33902098ee5acc64c8602f"; # public key, private/secure key is in sops
 
   clientConfig."m.homeserver".base_url = "https://${domain}";
   serverConfig."m.server" = "${domain}:443";
@@ -19,8 +18,8 @@
       extraConfig = ''
         tls {
           dns porkbun {
-            api_key ${porkbunApiKey}
-            api_secret_key {env.PORKBUN_SECRET}
+            api_key {env.PORKBUN_API_KEY}
+            api_secret_key {env.PORKBUN_SECRET_API_KEY}
           }
         }
         @local remote_ip 192.168.0.0/16 10.0.0.0/8 127.0.0.1
@@ -202,7 +201,7 @@ in {
     51413 # transmission
     8020 # zigbee
     8080 # RTL stuff
-    1883 # mqtt
+    8883 # mqtt (TLS)
     41447 # potato-mesh
     9000 # mealie
   ];
@@ -566,17 +565,40 @@ in {
     };
   };
 
+  # ACME cert for MQTT TLS
+  security.acme = {
+    acceptTerms = true;
+    defaults.email = "gipsy@qdice.wtf";
+    certs."mqtt.qdice.wtf" = {
+      dnsProvider = "porkbun";
+      credentialsFile = config.sops.secrets.porkbun_secret.path;
+      group = "mosquitto";
+      reloadServices = [ "mosquitto" ];
+    };
+  };
+
+  # Ensure mosquitto waits for cert on first boot
+  systemd.services.mosquitto = {
+    after = [ "acme-mqtt.qdice.wtf.service" ];
+    wants = [ "acme-mqtt.qdice.wtf.service" ];
+  };
+
   services.mosquitto = {
     enable = true;
     listeners = [{
-      port = 1883;
+      port = 8883;
+      settings = {
+        certfile = "/var/lib/acme/mqtt.qdice.wtf/cert.pem";
+        keyfile = "/var/lib/acme/mqtt.qdice.wtf/key.pem";
+        cafile = "/var/lib/acme/mqtt.qdice.wtf/chain.pem";
+      };
       users.meshdev = {
         passwordFile = config.sops.secrets.mosquitto-password.path;
-        acl = [ "readwrite #" ];
+        acl = [ "write msh/EU_868/#" ];
       };
       settings.allow_anonymous = false;
     }];
-    
+
     bridges.meshtastic_es = {
       addresses = [{ address = "mqtt.meshtastic.es"; port = 1883; }];
       topics = [

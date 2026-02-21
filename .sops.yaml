@@ -1,9 +1,11 @@
 keys:
   - &gipsy age1zqj90kxx0v8fh3q9mjxmnlrddkx040wqehw9xjdtd0k2pas425lsvv6xyx
   - &ops age1gtd33tvhx2skpmnd9hug7d3pfl76mlnfhsrand7e55j5xqkt4cvsld730j
+  - &lz age13wuctpzz8xd2ckcpv8mc3kne6jl6j2nwfn0demnauydg9kr3a39q2vc7r5
 creation_rules:
   - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
     key_groups:
     - age:
       - *gipsy
       - *ops
+      - *lz

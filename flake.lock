@@ -41,17 +41,17 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1768845809,
-        "narHash": "sha256-J9iqfdLSy329qjmeY0e/iWk7aGx1DQHWMQyLNmwVecA=",
-        "ref": "refs/heads/flake.nix",
-        "rev": "fe5b95437bec602f31f19000180f0380b7c66806",
-        "revCount": 153,
-        "type": "git",
-        "url": "file:///home/gipsy/o/meshstellar"
+        "lastModified": 1770452923,
+        "narHash": "sha256-PeFNeriBTMC1EUcSfNX+4VmryMXxVl8DZf2jtxkVGL0=",
+        "owner": "jurriaan",
+        "repo": "meshstellar",
+        "rev": "8c0d4878770ddae957fe60e695b028cf9a38745c",
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "file:///home/gipsy/o/meshstellar"
+        "owner": "jurriaan",
+        "repo": "meshstellar",
+        "type": "github"
       }
     },
     "nixpkgs": {

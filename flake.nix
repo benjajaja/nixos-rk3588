@@ -9,7 +9,7 @@
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
     potato-mesh.url = "github:l5yth/potato-mesh";
     potato-mesh.inputs.nixpkgs.follows = "nixpkgs";
-    meshstellar.url = "git+file:///home/gipsy/o/meshstellar";
+    meshstellar.url = "github:jurriaan/meshstellar";
   };
 
   outputs = {

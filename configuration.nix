@@ -652,7 +652,7 @@ in {
     frequency = "868MHz";
     ingestor = {
       enable = true;
-      connection = "192.168.8.75:4403";
+      connection = "192.168.10.75:4403";
     };
   };
 

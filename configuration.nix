@@ -615,7 +615,8 @@ in {
     bridges.meshtastic_es = {
       addresses = [{ address = "mqtt.meshtastic.es"; port = 1883; }];
       topics = [
-        "msh/EU_868/# out 0 \"\" \"\""
+        "msh/EU_868/# out 0"
+        "msh/EU_868/2/e/Canarias/# in 0"
         # "msh/EU_868/2/e/LasPalmas/# in 0 \"\" \"\""
       ];
       settings = {

@@ -426,6 +426,7 @@ in {
     enable = true;
     settings = import ./mautrix-whatsapp.nix;
     environmentFile = config.sops.secrets.mautrix_whatsapp_env.path;
+    package = pkgs-unstable.mautrix-whatsapp;
   };
   systemd.services.postgresql.postStart = ''
     PSQL="${config.services.postgresql.package}/bin/psql -U postgres"
@@ -517,10 +518,6 @@ in {
     port = 9090;
     settings.WebService.Origins = lib.mkForce "https://cockpit.qdice.wtf https://localhost:9090";
   };
-
-  nixpkgs.config.permittedInsecurePackages = [
-    "olm-3.2.16"
-  ];
 
   services.udev.packages = with pkgs; [
     rtl-sdr

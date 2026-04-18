@@ -118,6 +118,7 @@ in {
     rtl-ais
     rtl_433
     python313Packages.meshtastic
+    mosquitto # for mosquitto_sub debugging
 
     # stop annoying $TERM complaints
     kitty.terminfo
@@ -202,6 +203,7 @@ in {
     8020 # zigbee
     8080 # RTL stuff
     8883 # mqtt (TLS)
+    1883 # mqtt (non TLS)
     41447 # potato-mesh
     9000 # mealie
   ];
@@ -614,7 +616,6 @@ in {
       topics = [
         "msh/EU_868/# out 0"
         "msh/EU_868/2/e/Canarias/# in 0"
-        # "msh/EU_868/2/e/LasPalmas/# in 0 \"\" \"\""
       ];
       settings = {
         cleansession = false;
@@ -622,6 +623,8 @@ in {
         bridge_protocol_version = "mqttv50";
         remote_username = "meshdev";
         remote_password = "large4cats";  # public creds, fine as plaintext
+        restart_timeout = 7200; # 2hrs
+        remote_clientid = "mesh.qdice.wtf";
       };
     };
     bridges.meshtastic_org = {

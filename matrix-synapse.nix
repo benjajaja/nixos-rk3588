@@ -71,7 +71,7 @@
     notif_for_new_users = false;
     client_base_url = "https://qdice.wtf";
   };
-  
+
   url_preview_enabled = true;
   url_preview_ip_range_blacklist = [
     "127.0.0.0/8"
@@ -84,14 +84,15 @@
     "fe80::/10"
     "fc00::/7"
   ];
-  
+  url_preview_url_blacklist = [ ];
+
   media_retention = {
     local_media_lifetime = "30d";
     remote_media_lifetime = "14d";
   };
-  
+
   track_appservice_user_ips = true;
-  
+
   experimental_features = {
     msc2409_to_device_messages_enabled = true;
     msc3202_device_masquerading = true;

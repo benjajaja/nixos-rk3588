@@ -185,9 +185,9 @@ in {
     description = "Run backup sync daily";
     wantedBy = [ "timers.target" ];
     timerConfig = {
-      OnCalendar = "daily";
-      Persistent = true;  # Run if system was off during scheduled time
-      RandomizedDelaySec = "4h";  # Randomize start time to avoid load spikes
+      OnCalendar = "04:00";
+      Persistent = true;
+      RandomizedDelaySec = "30m";
     };
   };
 

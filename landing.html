@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>qdice.wtf</title>
+<style>
+:root {
+    --fg: #a6e3a1;
+    --dim: #6fa86d;
+    --bg: #050705;
+    --border: #1f2a1f;
+    --glow: rgba(166,227,161,.15);
+
+    font-family: monospace;
+    color: var(--fg);
+    background: var(--bg);
+}
+
+body { margin: 0; padding: 2.5rem; }
+
+h1, h2, h3 {
+    margin: 0 0 2rem;
+    text-shadow: 0 0 6px var(--glow);
+}
+
+.page {
+    max-width: 800px;
+    margin: 0 auto;
+}
+.card {
+    display: block;
+    padding: 1rem;
+    text-decoration: none;
+    color: inherit;
+
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,.01);
+    transition: .15s;
+    margin-bottom: 2rem;
+}
+
+.card:hover {
+    border-color: var(--dim);
+    box-shadow: 0 0 12px var(--glow);
+}
+
+.title { 
+  display: block;
+  font-size: 1.25rem;
+  margin-bottom: .3rem; 
+}
+.desc { 
+  display: block;
+  margin-bottom: .3rem; 
+}
+
+.url {
+    color: var(--dim);
+    word-break: break-all;
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <h1>qdice.wtf</h1>
+  <h2>Benjamin Große</h2>
+
+  <p>
+    These are my projects.
+  </p>
+
+  <div class="grid">
+      <a class="card" href="https://store.steampowered.com/app/2255020/Qdice/">
+          <span class="title">Qdice on Steam</span>
+          <span class="desc">A turn-based multiplayer strategy boardgame inspired by Risk and Dicewars.</span>
+          <span class="url">store.steampowered.com/app/2255020/Qdice</span>
+      </a>
+
+      <a class="card" href="https://mesh.qdice.wtf">
+          <span class="title">Meshtastic LZ</span>
+          <span class="desc">Malla de Meshtastic en Lanzarote.</span>
+          <span class="url">mesh.qdice.wtf</span>
+      </a>
+
+      <a class="card" href="https://github.com/benjajaja/mdfried">
+          <span class="title">MdFried</span>
+          <span class="desc">Markdown terminal viewer with Big Text™ and images.</span>
+          <span class="url">github.com/benjajaja/mdfried</span>
+      </a>
+
+      <a class="card" href="https://github.com/ratatui/ratatui-image">
+          <span class="title">ratatui-image</span>
+          <span class="desc">Library crate: Image widgets with multiple graphics protocol backends for ratatui.</span>
+          <span class="url">github.com/ratatui/ratatui-image</span>
+      </a>
+  </div>
+</div>
+
+</body>
+</html>

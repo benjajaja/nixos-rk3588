@@ -316,7 +316,10 @@ in {
       "qdice.wtf" = {
         extraConfig = ''
           handle / {
-            respond 503
+            header Content-Type text/html
+            respond <<HTML
+${builtins.readFile ./landing.html}
+HTML
           }
           handle_path /.well-known/matrix/server {
             header Content-Type application/json
@@ -611,7 +614,7 @@ in {
         # address = "127.0.0.1";
         users.meshdev = {
           passwordFile = config.sops.secrets.mosquitto-password.path;
-          acl = [ "readwrite msh/EU_868/#" ];
+          acl = [ "read msh/EU_868/#" ];
         };
         settings.allow_anonymous = false;
       }

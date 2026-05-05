@@ -535,7 +535,7 @@ in {
       inet_protocols = "ipv4";
       
       # Relay all mail directly to MailerSend (replaces msmtp)
-      relayhost = ["[smtp-relay.brevo.com]:587"];
+      relayhost = ["[mail.smtp2go.com]:587"];
       
       # SASL authentication for Postfix to authenticate TO MailerSend
       smtp_sasl_auth_enable = true;
@@ -559,6 +559,8 @@ in {
       local_recipient_maps = "";
       local_transport = "error:local mail delivery is disabled";
       
+      myorigin = "qdice.wtf";
+
       # Simple configuration
       compatibility_level = "3.6";
     };

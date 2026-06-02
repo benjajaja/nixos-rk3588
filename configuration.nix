@@ -498,6 +498,14 @@ HTML
         enable_quirks = true;
         custom_quirks_path = "/var/lib/hass/zhaquirks/";
       };
+      # logger = {
+        # default = "info";
+        # logs = {
+          # zigpy = "debug";
+          # zha = "debug";
+          # zigpy_znp = "debug";
+        # };
+      # };
     };
     package = pkgs.home-assistant.override {
       extraPackages = ps:

@@ -336,11 +336,9 @@ HTML
           reverse_proxy 127.0.0.1:8008
         '';
       };
-      "immich.qdice.wtf" = {
-        extraConfig = ''
-          reverse_proxy localhost:2283
-        '';
-      };
+    }
+    // makePrivateHost "immich" "reverse_proxy localhost:2283"
+    // {
       # "mesh.qdice.wtf" = {
         # extraConfig = ''
           # reverse_proxy 127.0.0.1:41447

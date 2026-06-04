@@ -203,9 +203,7 @@ in {
     8020 # zigbee
     8080 # RTL stuff
     8883 # mqtt (TLS)
-    1883 # mqtt (non TLS)
     41447 # potato-mesh
-    9000 # mealie
   ];
   networking.firewall.allowedUDPPorts = [
     111 # rpcbind
@@ -254,7 +252,7 @@ in {
     port = 2283;
     accelerationDevices = null;
     mediaLocation = "/srv/photos";
-    openFirewall = true;
+    openFirewall = false;
   };
   users.users.immich.extraGroups = [ "video" "render" "users" ];
 
@@ -283,7 +281,7 @@ in {
   };
   services.sonarr = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false;
     environmentFiles = [ config.sops.secrets.sonarr_env.path ];
   };
   users.users.sonarr = {
@@ -291,7 +289,7 @@ in {
   };
   services.radarr = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false;
     environmentFiles = [ config.sops.secrets.radarr_env.path ];
   };
   users.users.radarr = {
@@ -299,7 +297,7 @@ in {
   };
   services.prowlarr = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false;
     environmentFiles = [ config.sops.secrets.prowlarr_env.path ];
   };
 
@@ -366,7 +364,8 @@ HTML
     // makePrivateHost "sonarr" "reverse_proxy localhost:8989"
     // makePrivateHost "radarr" "reverse_proxy localhost:7878"
     // makePrivateHost "transmission" "reverse_proxy localhost:9091"
-    // makePrivateHost "cockpit" "reverse_proxy localhost:9090";
+    // makePrivateHost "cockpit" "reverse_proxy localhost:9090"
+    // makePrivateHost "glances" "reverse_proxy localhost:61208";
   };
   systemd.services.caddy = {
     after = [ "sops-nix.service" ];
@@ -455,7 +454,7 @@ HTML
 
   services.home-assistant = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false;
     config = {
       homeassistant = {
         name = "Home";
@@ -525,12 +524,12 @@ HTML
   
   services.glances = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false;
   };
 
   services.cockpit = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false;
     port = 9090;
     settings.WebService.Origins = lib.mkForce "https://cockpit.qdice.wtf https://localhost:9090";
   };

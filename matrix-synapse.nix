@@ -43,7 +43,7 @@
   suppress_key_server_warning = true; # yea yea trust matrix.org.
   
   enable_registration_captcha = true;
-  enable_registration = true;
+  enable_registration = false;
   default_identity_server = "https://matrix.org";
   
   password_config = {

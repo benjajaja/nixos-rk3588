@@ -632,7 +632,7 @@ HTML
       addresses = [{ address = "mqtt.meshtastic.es"; port = 1883; }];
       topics = [
         "msh/EU_868/# out 0"
-        "msh/EU_868/2/e/Canarias/# in 0"
+        # "msh/EU_868/2/e/Canarias/# in 0"
       ];
       settings = {
         cleansession = false;
@@ -681,6 +681,7 @@ HTML
       mqtt_host = "127.0.0.1";
       mqtt_username = "meshdev";
       mqtt_topic = "msh/EU_868/#";
+      only_rf_packets = true;
     };
   };
 

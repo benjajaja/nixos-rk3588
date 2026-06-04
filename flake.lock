@@ -41,15 +41,16 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1770452923,
-        "narHash": "sha256-PeFNeriBTMC1EUcSfNX+4VmryMXxVl8DZf2jtxkVGL0=",
-        "owner": "jurriaan",
+        "lastModified": 1780432972,
+        "narHash": "sha256-fDaRm75Ut4zv4c0WX89OyyAmceC/BzXPTWKRMEG9NtE=",
+        "owner": "benjajaja",
         "repo": "meshstellar",
-        "rev": "8c0d4878770ddae957fe60e695b028cf9a38745c",
+        "rev": "15486f6c77dda5ee1f0500616c30ae5a6f88137c",
         "type": "github"
       },
       "original": {
-        "owner": "jurriaan",
+        "owner": "benjajaja",
+        "ref": "only_rf_packets",
         "repo": "meshstellar",
         "type": "github"
       }

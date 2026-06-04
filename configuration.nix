@@ -266,7 +266,7 @@ in {
     settings = {
       "download-dir" = "/srv/sdd/transmission";
       "incomplete-dir-enabled" = false;
-      "rpc-bind-address" = "0.0.0.0";
+      "rpc-bind-address" = "127.0.0.1";
       "rpc-authentication-required" = false;
       "rpc-host-whitelist-enabled" = false;
       "rpc-whitelist-enabled" = false;

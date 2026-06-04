@@ -351,6 +351,11 @@ HTML
           reverse_proxy 127.0.0.1:3000
         '';
       };
+      "mdfried.qdice.wtf" = {
+        extraConfig = ''
+          redir https://github.com/benjajaja/mdfried
+        '';
+      };
     }
     # private
     // makePrivateHost "ha" "reverse_proxy localhost:8123"

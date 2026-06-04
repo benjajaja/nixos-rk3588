@@ -624,7 +624,7 @@ HTML
       # Local plaintext listener for meshstellar/internal services
       {
         port = 1883;
-        # address = "127.0.0.1";
+        address = "127.0.0.1";
         users.meshdev = {
           passwordFile = config.sops.secrets.mosquitto-password.path;
           acl = [ "read msh/EU_868/#" ];

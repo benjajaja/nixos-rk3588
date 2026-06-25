@@ -89,6 +89,7 @@ in {
     tree
     gnused
     gawk
+    jq
 
     # archives
     zip
@@ -307,7 +308,7 @@ in {
     enable = true;
     package = pkgs.caddy.withPlugins {
       plugins = [ "github.com/caddy-dns/porkbun@v0.3.1" ];
-      hash = "sha256-aVSE8y9Bt+XS7+M27Ua+ewxRIcX51PuFu4+mqKbWFwo=";
+      hash = "sha256-JtzeWz9GdW/+1Qft5nU9diPkFQvPGxQkgR8n8w+ryoI=";
     };
     virtualHosts = {
       # public
@@ -365,7 +366,7 @@ HTML
     // makePrivateHost "radarr" "reverse_proxy localhost:7878"
     // makePrivateHost "transmission" "reverse_proxy localhost:9091"
     // makePrivateHost "cockpit" "reverse_proxy localhost:9090"
-    // makePrivateHost "glances" "reverse_proxy localhost:61208";
+    ;
   };
   systemd.services.caddy = {
     after = [ "sops-nix.service" ];
@@ -509,7 +510,7 @@ HTML
         # };
       # };
     };
-    package = pkgs.home-assistant.override {
+    package = pkgs-unstable.home-assistant.override {
       extraPackages = ps:
         with ps; [
           gtts
@@ -522,10 +523,6 @@ HTML
     };
   };
   
-  services.glances = {
-    enable = true;
-    openFirewall = false;
-  };
 
   services.cockpit = {
     enable = true;
@@ -585,7 +582,7 @@ HTML
     defaults.email = "gipsy@qdice.wtf";
     certs."mqtt.qdice.wtf" = {
       dnsProvider = "porkbun";
-      credentialsFile = config.sops.secrets.porkbun_secret.path;
+      environmentFile = config.sops.secrets.porkbun_secret.path;
       group = "mosquitto";
       reloadServices = [ "mosquitto" ];
     };

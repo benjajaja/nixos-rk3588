@@ -174,7 +174,7 @@ in {
     mountdPort = 892;
     statdPort = 4000;
     exports = ''
-      /srv         192.168.8.0/24(rw,fsid=0,no_subtree_check,no_root_squash,insecure)
+      /srv         192.168.8.0/24(rw,no_subtree_check,no_root_squash,insecure)
       /srv/backup  192.168.8.0/24(rw,nohide,crossmnt,no_subtree_check,no_root_squash,insecure)
       /srv/photos  192.168.8.0/24(rw,nohide,crossmnt,no_subtree_check,no_root_squash,insecure)
       /srv/sdd     192.168.8.0/24(rw,nohide,crossmnt,no_subtree_check,no_root_squash,insecure)

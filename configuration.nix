@@ -432,9 +432,9 @@ HTML
   };
   services.mautrix-whatsapp = {
     enable = true;
+    package = pkgs-unstable.mautrix-whatsapp;
     settings = import ./mautrix-whatsapp.nix;
     environmentFile = config.sops.secrets.mautrix_whatsapp_env.path;
-    package = pkgs-unstable.mautrix-whatsapp;
   };
   systemd.services.postgresql.postStart = ''
     PSQL="${config.services.postgresql.package}/bin/psql -U postgres"

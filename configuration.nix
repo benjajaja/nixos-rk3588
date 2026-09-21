@@ -276,6 +276,7 @@ in {
     };
     downloadDirPermissions = "775";
   };
+  systemd.services.transmission.serviceConfig.UMask = lib.mkForce "0002";
   users.users.transmission = {
     isSystemUser = true;
     extraGroups = ["users" "media"];

@@ -181,7 +181,20 @@ in {
     '';
   };
 
-  systemd.services.backup-sync = import ./backup.nix { inherit pkgs; };
+  systemd.services.nfs-reexport-sdd = {
+    after = [ "srv-sdd.mount" "nfs-server.service" ];
+    bindsTo = [ "srv-sdd.mount" ];
+    wantedBy = [ "srv-sdd.mount" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.nfs-utils}/bin/exportfs -r";
+    };
+  };
+
+  systemd.services.backup-sync = (import ./backup.nix { inherit pkgs; }) // {
+    after = [ "srv-sdd.mount" ];
+    bindsTo = [ "srv-sdd.mount" ];
+  };
   systemd.timers.backup-sync = {
     description = "Run backup sync daily";
     wantedBy = [ "timers.target" ];
@@ -277,6 +290,26 @@ in {
     downloadDirPermissions = "775";
   };
   systemd.services.transmission.serviceConfig.UMask = lib.mkForce "0002";
+  systemd.services.transmission = {
+    after = [ "srv-sdd.mount" ];
+    bindsTo = [ "srv-sdd.mount" ];
+    wantedBy = lib.mkForce [ "srv-sdd.mount" ];
+  };
+  systemd.services.sonarr = {
+    after = [ "srv-sdd.mount" ];
+    bindsTo = [ "srv-sdd.mount" ];
+    wantedBy = lib.mkForce [ "srv-sdd.mount" ];
+  };
+  systemd.services.radarr = {
+    after = [ "srv-sdd.mount" ];
+    bindsTo = [ "srv-sdd.mount" ];
+    wantedBy = lib.mkForce [ "srv-sdd.mount" ];
+  };
+  systemd.services.prowlarr = {
+    after = [ "srv-sdd.mount" ];
+    bindsTo = [ "srv-sdd.mount" ];
+    wantedBy = lib.mkForce [ "srv-sdd.mount" ];
+  };
   users.users.transmission = {
     isSystemUser = true;
     extraGroups = ["users" "media"];

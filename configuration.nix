@@ -38,6 +38,13 @@ in {
   # =========================================================================
   # nix run nixpkgs#colmena apply -- --impure
 
+  nixpkgs.overlays = [
+    (_: _: {
+      matrix-synapse = pkgs-unstable.matrix-synapse;
+      mautrix-telegram = pkgs-unstable.mautrix-telegram;
+    })
+  ];
+
   sops = import ./sops.nix;
 
   # Set your time zone.
@@ -354,6 +361,7 @@ in {
 ${builtins.readFile ./landing.html}
 HTML
           }
+          redir /carcelera-feedback* https://forms.gle/hPk4ycDaB6vxDste8 302
           handle_path /.well-known/matrix/server {
             header Content-Type application/json
             header Access-Control-Allow-Origin *
@@ -461,6 +469,7 @@ HTML
   };
   services.mautrix-telegram = {
     enable = true;
+    package = pkgs-unstable.mautrix-telegram;
     settings = import ./mautrix-telegram.nix;
     environmentFile = config.sops.secrets.mautrix_telegram_env.path;
   };
